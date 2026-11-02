@@ -203,8 +203,12 @@ function buildMergedSectionOrder(persisted?: SectionKey[] | null): SectionKey[] 
   if (!Array.isArray(persisted) || persisted.length === 0) {
     return DEFAULT_SECTION_ORDER;
   }
-  const missing = DEFAULT_SECTION_ORDER.filter((key) => !persisted.includes(key));
-  return [...persisted, ...missing];
+  const validKeys = persisted.filter((key): key is SectionKey =>
+    DEFAULT_SECTION_ORDER.includes(key)
+  );
+  const uniqueKeys = Array.from(new Set(validKeys));
+  const missing = DEFAULT_SECTION_ORDER.filter((key) => !uniqueKeys.includes(key));
+  return [...uniqueKeys, ...missing];
 }
 
 function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeData {
@@ -336,6 +340,15 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
         JSON.stringify({ hiddenSections: data.hiddenSections })
       );
       updates.hiddenSections = data.hiddenSections as SectionKey[];
+    }
+
+    if (Array.isArray((data as any)?.sectionOrder)) {
+      const mergedOrder = buildMergedSectionOrder((data as any).sectionOrder);
+      localStorage.setItem(
+        "sectionOrder",
+        JSON.stringify({ sectionOrder: mergedOrder })
+      );
+      updates.sectionOrder = mergedOrder;
     }
 
     set(updates as ResumeStoreState);
