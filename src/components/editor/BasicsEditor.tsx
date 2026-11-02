@@ -4,7 +4,6 @@ import {
   Trash2,
   Eye,
   EyeOff,
-  Plus,
   RotateCcw,
 } from 'lucide-react';
 import {
@@ -12,19 +11,11 @@ import {
   DeleteConfirmDialog,
   Input,
   Label,
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
   Separator,
   Slider,
-  Switch,
 } from '@/components/ui/primitives';
 import { toast } from '@/components/ui/toast';
-import {
-  CUSTOM_FIELD_ICON_NAMES,
-  CustomFieldIcon,
-  SectionIcon,
-} from '@/components/icons/CustomIcons';
+import { SectionIcon } from '@/components/icons/CustomIcons';
 import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 import { basicsFormSchema } from '@/schemas/resumeSchemas';
@@ -34,7 +25,6 @@ import {
   validatePhotoFile,
 } from '@/services/photoService';
 import { CONFIG } from '@/lib/utils';
-import type { CustomFieldItem } from '@/types/resume';
 
 export function BasicsEditor() {
   const { resumeData, updateBasics, resetPhotoSettings } = useResumeStore();
@@ -133,39 +123,6 @@ export function BasicsEditor() {
     } else {
       setPhotoUrlError('');
     }
-  };
-
-  const handleAddCustomField = () => {
-    const id =
-      typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-        ? crypto.randomUUID()
-        : `cf-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    const newField: CustomFieldItem = {
-      id,
-      iconName: 'link',
-      name: '',
-      value: '',
-      breakAfter: false,
-    };
-    updateBasics({
-      customFields: [...basics.customFields, newField],
-    });
-  };
-
-  const handleUpdateCustomField = (
-    id: string,
-    patch: Partial<CustomFieldItem>
-  ) => {
-    const updated = basics.customFields.map((field) =>
-      field.id === id ? { ...field, ...patch } : field
-    );
-    updateBasics({ customFields: updated });
-  };
-
-  const handleRemoveCustomField = (id: string) => {
-    updateBasics({
-      customFields: basics.customFields.filter((f) => f.id !== id),
-    });
   };
 
   return (
@@ -476,6 +433,7 @@ export function BasicsEditor() {
           )}
         </div>
 
+        {/* 1. Mail & SDT */}
         <div className="space-y-1.5">
           <Label htmlFor="basics-email">{t('basics.email')}</Label>
           <Input
@@ -495,41 +453,59 @@ export function BasicsEditor() {
           )}
         </div>
 
-        {/* Phone with Break After switch */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="basics-phone">{t('basics.phone')}</Label>
-            <div className="flex items-center gap-1.5">
-              <Label
-                htmlFor="phone-break-after"
-                className="cursor-pointer text-xs font-normal text-muted-foreground"
-              >
-                {t('common.breakAfter')}
-              </Label>
-              <Switch
-                id="phone-break-after"
-                disabled={!basics.phone.value.trim()}
-                checked={basics.phone.breakAfter}
-                onCheckedChange={(checked) =>
-                  updateBasics({
-                    phone: { ...basics.phone, breakAfter: checked },
-                  })
-                }
-              />
-            </div>
-          </div>
+          <Label htmlFor="basics-phone">{t('basics.phone')}</Label>
           <Input
             id="basics-phone"
             placeholder="+1 (555) 234-5678"
-            value={basics.phone.value}
+            value={basics.phone?.value || ''}
             onChange={(e) =>
               updateBasics({
-                phone: { ...basics.phone, value: e.target.value },
+                phone: {
+                  ...(basics.phone || { breakAfter: false }),
+                  value: e.target.value,
+                },
               })
             }
           />
         </div>
 
+        {/* 2. Ngày sinh & Địa chỉ */}
+        <div className="space-y-1.5">
+          <Label htmlFor="basics-date-of-birth">{t('basics.dateOfBirth')}</Label>
+          <Input
+            id="basics-date-of-birth"
+            placeholder={t('basics.dateOfBirthPlaceholder')}
+            value={basics.dateOfBirth?.value || ''}
+            onChange={(e) =>
+              updateBasics({
+                dateOfBirth: {
+                  ...(basics.dateOfBirth || { breakAfter: false }),
+                  value: e.target.value,
+                },
+              })
+            }
+          />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="basics-location">{t('basics.location')}</Label>
+          <Input
+            id="basics-location"
+            placeholder="Cairo, Egypt"
+            value={basics.location?.value || ''}
+            onChange={(e) =>
+              updateBasics({
+                location: {
+                  ...(basics.location || { breakAfter: false }),
+                  value: e.target.value,
+                },
+              })
+            }
+          />
+        </div>
+
+        {/* 3. LinkedIn & Portfolio */}
         <div className="space-y-1.5">
           <Label htmlFor="basics-linkedin">{t('basics.linkedin')}</Label>
           <Input
@@ -565,207 +541,6 @@ export function BasicsEditor() {
             <p className="text-xs text-destructive">{fieldErrors['website']}</p>
           )}
         </div>
-
-        {/* Date of Birth with Break After switch */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="basics-date-of-birth">{t('basics.dateOfBirth')}</Label>
-            <div className="flex items-center gap-1.5">
-              <Label
-                htmlFor="date-of-birth-break-after"
-                className="cursor-pointer text-xs font-normal text-muted-foreground"
-              >
-                {t('common.breakAfter')}
-              </Label>
-              <Switch
-                id="date-of-birth-break-after"
-                disabled={!basics.dateOfBirth?.value?.trim()}
-                checked={basics.dateOfBirth?.breakAfter ?? false}
-                onCheckedChange={(checked) =>
-                  updateBasics({
-                    dateOfBirth: {
-                      value: basics.dateOfBirth?.value || '',
-                      breakAfter: checked,
-                    },
-                  })
-                }
-              />
-            </div>
-          </div>
-          <Input
-            id="basics-date-of-birth"
-            placeholder={t('basics.dateOfBirthPlaceholder')}
-            value={basics.dateOfBirth?.value || ''}
-            onChange={(e) =>
-              updateBasics({
-                dateOfBirth: {
-                  value: e.target.value,
-                  breakAfter: basics.dateOfBirth?.breakAfter ?? false,
-                },
-              })
-            }
-          />
-        </div>
-
-        {/* Location with Break After switch */}
-        <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="basics-location">{t('basics.location')}</Label>
-            <div className="flex items-center gap-1.5">
-              <Label
-                htmlFor="location-break-after"
-                className="cursor-pointer text-xs font-normal text-muted-foreground"
-              >
-                {t('common.breakAfter')}
-              </Label>
-              <Switch
-                id="location-break-after"
-                disabled={!basics.location.value.trim()}
-                checked={basics.location.breakAfter}
-                onCheckedChange={(checked) =>
-                  updateBasics({
-                    location: { ...basics.location, breakAfter: checked },
-                  })
-                }
-              />
-            </div>
-          </div>
-          <Input
-            id="basics-location"
-            placeholder="Cairo, Egypt"
-            value={basics.location.value}
-            onChange={(e) =>
-              updateBasics({
-                location: { ...basics.location, value: e.target.value },
-              })
-            }
-          />
-        </div>
-      </div>
-
-      {/* Custom Fields */}
-      {basics.customFields.length > 0 && (
-        <div className="space-y-3 pt-1">
-          <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            {t('basics.customFields')}
-          </Label>
-          <div className="space-y-2.5">
-            {basics.customFields.map((field) => (
-              <div
-                key={field.id}
-                className="flex flex-col gap-2 rounded-md border border-border bg-card/40 p-2.5 sm:flex-row sm:items-center"
-              >
-                <div className="flex flex-1 items-center gap-2">
-                  {/* 15-icon Popover selector */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        className="h-9 w-9 shrink-0"
-                        tooltipContent={t('basics.chooseIcon')}
-                      >
-                        <CustomFieldIcon
-                          iconName={field.iconName}
-                          size={16}
-                        />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-56 p-2" align="start">
-                      <div className="grid grid-cols-5 gap-1">
-                        {CUSTOM_FIELD_ICON_NAMES.map((iconKey) => (
-                          <Button
-                            key={iconKey}
-                            type="button"
-                            variant={
-                              field.iconName === iconKey ? 'secondary' : 'ghost'
-                            }
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() =>
-                              handleUpdateCustomField(field.id, {
-                                iconName: iconKey,
-                              })
-                            }
-                          >
-                            <CustomFieldIcon iconName={iconKey} size={16} />
-                          </Button>
-                        ))}
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-
-                  <Input
-                    placeholder={t('basics.customLabelPlaceholder')}
-                    value={field.name}
-                    onChange={(e) =>
-                      handleUpdateCustomField(field.id, {
-                        name: e.target.value,
-                      })
-                    }
-                    className="h-9 flex-1"
-                  />
-
-                  <Input
-                    placeholder={t('basics.customValuePlaceholder')}
-                    value={field.value}
-                    onChange={(e) =>
-                      handleUpdateCustomField(field.id, {
-                        value: e.target.value,
-                      })
-                    }
-                    className="h-9 flex-1"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between gap-2 sm:justify-end">
-                  <div className="flex items-center gap-1.5">
-                    <Label
-                      htmlFor={`cf-break-${field.id}`}
-                      className="cursor-pointer whitespace-nowrap text-xs font-normal text-muted-foreground"
-                    >
-                      {t('common.breakAfter')}
-                    </Label>
-                    <Switch
-                      id={`cf-break-${field.id}`}
-                      checked={Boolean(field.breakAfter)}
-                      onCheckedChange={(checked) =>
-                        handleUpdateCustomField(field.id, {
-                          breakAfter: checked,
-                        })
-                      }
-                    />
-                  </div>
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    tooltipContent={t('basics.removeCustomField')}
-                    onClick={() => handleRemoveCustomField(field.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5 text-xs"
-          onClick={handleAddCustomField}
-        >
-          <Plus className="h-3.5 w-3.5" />
-          <span>{t('basics.addCustomField')}</span>
-        </Button>
       </div>
 
       <Separator className="my-4" />

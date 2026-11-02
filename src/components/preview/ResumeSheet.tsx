@@ -770,117 +770,128 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                 </p>
               )}
 
-              {/* Contact Items Row */}
+              {/* Contact Information (3 fixed lines) */}
               <div
-                className={`mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-neutral-700 ${alignmentJustifyClass}`}
+                className={`mt-1.5 flex flex-col gap-y-0.5 w-full text-neutral-700 ${alignmentItemsClass}`}
                 style={{ fontSize: `${Math.max(10, fontSize - 1)}px` }}
               >
-                {basics.email && (
-                  <span className="inline-flex items-center gap-1">
-                    <Mail className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
-                    <a
-                      href={`mailto:${basics.email}`}
-                      className="hover:underline"
-                    >
-                      {basics.email}
-                    </a>
-                  </span>
-                )}
-
-                {basics.phone?.value && (
-                  <>
-                    <span className="inline-flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
-                      <span>{basics.phone.value}</span>
-                    </span>
-                    {basics.phone.breakAfter && <div className="basis-full h-0" />}
-                  </>
-                )}
-
-                {basics.linkedin && (
-                  <span className="inline-flex items-center gap-1">
-                    <LinkedInIcon size={14} />
-                    <a
-                      href={normalizeHref(basics.linkedin)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:underline"
-                    >
-                      {basics.linkedin.replace(/^https?:\/\/(www\.)?/i, '')}
-                    </a>
-                  </span>
-                )}
-
-                {basics.website && (
-                  <span className="inline-flex items-center gap-1">
-                    <Globe className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
-                    <a
-                      href={normalizeHref(basics.website)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="hover:underline"
-                    >
-                      {basics.website.replace(/^https?:\/\/(www\.)?/i, '')}
-                    </a>
-                  </span>
-                )}
-
-                {basics.dateOfBirth?.value && (
-                  <>
-                    <span className="inline-flex items-center gap-1">
-                      <Calendar className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
-                      <span>{basics.dateOfBirth.value}</span>
-                    </span>
-                    {basics.dateOfBirth.breakAfter && (
-                      <div className="basis-full h-0" />
-                    )}
-                  </>
-                )}
-
-                {basics.location?.value && (
-                  <>
-                    <span className="inline-flex items-center gap-1">
-                      <MapPin className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
-                      <span>{basics.location.value}</span>
-                    </span>
-                    {basics.location.breakAfter && (
-                      <div className="basis-full h-0" />
-                    )}
-                  </>
-                )}
-
-                {basics.customFields?.map((field) => {
-                  if (!field.name && !field.value) return null;
-                  const display = field.name || field.value;
-                  return (
-                    <React.Fragment key={field.id}>
+                {/* 1. Mail, SDT */}
+                {(basics.email || basics.phone?.value) && (
+                  <div
+                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
+                  >
+                    {basics.email && (
                       <span className="inline-flex items-center gap-1">
-                        <CustomFieldIcon
-                          iconName={field.iconName}
-                          size={14}
-                          className="shrink-0 text-neutral-600"
-                        />
-                        {isUrlValue(field.value) ? (
-                          <a
-                            href={normalizeHref(field.value)}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="hover:underline"
-                          >
-                            {display}
-                          </a>
-                        ) : (
-                          <span>
-                            {field.name && field.value
-                              ? `${field.name}: ${field.value}`
-                              : display}
-                          </span>
-                        )}
+                        <Mail className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                        <a
+                          href={`mailto:${basics.email}`}
+                          className="hover:underline"
+                        >
+                          {basics.email}
+                        </a>
                       </span>
-                      {field.breakAfter && <div className="basis-full h-0" />}
-                    </React.Fragment>
-                  );
-                })}
+                    )}
+                    {basics.phone?.value && (
+                      <span className="inline-flex items-center gap-1">
+                        <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                        <span>{basics.phone.value}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* 2. Ngày sinh, Địa chỉ */}
+                {(basics.dateOfBirth?.value || basics.location?.value) && (
+                  <div
+                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
+                  >
+                    {basics.dateOfBirth?.value && (
+                      <span className="inline-flex items-center gap-1">
+                        <Calendar className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                        <span>{basics.dateOfBirth.value}</span>
+                      </span>
+                    )}
+                    {basics.location?.value && (
+                      <span className="inline-flex items-center gap-1">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                        <span>{basics.location.value}</span>
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* 3. LinkedIn, Portfolio */}
+                {(basics.linkedin || basics.website) && (
+                  <div
+                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
+                  >
+                    {basics.linkedin && (
+                      <span className="inline-flex items-center gap-1">
+                        <LinkedInIcon size={14} />
+                        <a
+                          href={normalizeHref(basics.linkedin)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline"
+                        >
+                          {basics.linkedin.replace(/^https?:\/\/(www\.)?/i, '')}
+                        </a>
+                      </span>
+                    )}
+                    {basics.website && (
+                      <span className="inline-flex items-center gap-1">
+                        <Globe className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                        <a
+                          href={normalizeHref(basics.website)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline"
+                        >
+                          {basics.website.replace(/^https?:\/\/(www\.)?/i, '')}
+                        </a>
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Legacy Custom Fields fallback (if any persisted from previous imports) */}
+                {basics.customFields && basics.customFields.length > 0 && (
+                  <div
+                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
+                  >
+                    {basics.customFields.map((field) => {
+                      if (!field.name && !field.value) return null;
+                      const display = field.name || field.value;
+                      return (
+                        <span key={field.id} className="inline-flex items-center gap-1">
+                          {field.iconName && (
+                            <CustomFieldIcon
+                              iconName={field.iconName}
+                              size={14}
+                              className="shrink-0 text-neutral-600"
+                            />
+                          )}
+                          {isUrlValue(field.value) ? (
+                            <a
+                              href={normalizeHref(field.value)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:underline"
+                            >
+                              {display}
+                            </a>
+                          ) : (
+                            <span>
+                              {field.name && field.value
+                                ? `${field.name}: ${field.value}`
+                                : display}
+                            </span>
+                          )}
+                        </span>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           </header>

@@ -30,7 +30,7 @@
 ## 🚀 Tính năng nổi bật
 
 ### 1. 📝 Quản lý nội dung CV toàn diện
-- **Thông tin cá nhân (Personal Information)**: Họ tên, chức danh nghề nghiệp, email, số điện thoại, ngày sinh, địa chỉ, liên kết LinkedIn, Website/Portfolio cá nhân. Hỗ trợ ngắt dòng linh hoạt (Break after) và thêm **Custom Fields** không giới hạn với bộ 15 biểu tượng (GitHub, Behance, WhatsApp, X/Twitter, YouTube...).
+- **Thông tin cá nhân (Personal Information)**: Họ tên, chức danh nghề nghiệp, và thông tin liên hệ được tối ưu chuẩn mực theo 3 dòng cố định: (1) Email & Số điện thoại, (2) Ngày sinh & Địa chỉ, (3) LinkedIn & Portfolio/Website.
 - **Ảnh đại diện linh hoạt**: Tải ảnh trực tiếp (`PNG/JPG/WebP <= 2MB`) hoặc nhập URL, tùy chỉnh kích thước (`size: 40px – 200px`), bo tròn góc (`border-radius: 0 – 100px`), bật/tắt hiển thị trên bản in.
 - **Tóm tắt chuyên môn (Summary)**: Bộ soạn thảo Rich Text (TipTap) hỗ trợ định dạng danh sách, in đậm, in nghiêng, liên kết, và các công cụ AI.
 - **8+ danh mục động**:
