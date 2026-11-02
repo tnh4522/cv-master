@@ -75,6 +75,7 @@ const EMPLOYMENT_TYPES = [
 
 const LANGUAGE_LEVELS = [
   'Basic',
+  'Intermediate',
   'Conversational',
   'Advanced',
   'Fluent',
@@ -370,6 +371,14 @@ function ExperienceDialog() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        {field.value &&
+                          !EMPLOYMENT_TYPES.includes(
+                            field.value as (typeof EMPLOYMENT_TYPES)[number]
+                          ) && (
+                            <SelectItem value={field.value}>
+                              {field.value}
+                            </SelectItem>
+                          )}
                         {EMPLOYMENT_TYPES.map((type) => (
                           <SelectItem key={type} value={type}>
                             {type}
@@ -1008,6 +1017,14 @@ function LanguagesDialog() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        {field.value &&
+                          !LANGUAGE_LEVELS.includes(
+                            field.value as (typeof LANGUAGE_LEVELS)[number]
+                          ) && (
+                            <SelectItem value={field.value}>
+                              {field.value}
+                            </SelectItem>
+                          )}
                         {LANGUAGE_LEVELS.map((lvl) => (
                           <SelectItem key={lvl} value={lvl}>
                             {lvl}

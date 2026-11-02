@@ -377,7 +377,7 @@ function EditorContentSync({ content }: { content: string }) {
   useEffect(() => {
     if (!editor) return;
     const currentHtml = editor.getHTML();
-    if (content !== currentHtml && !editor.isFocused) {
+    if (content !== currentHtml) {
       editor.commands.setContent(content || '', false);
     }
   }, [content, editor]);

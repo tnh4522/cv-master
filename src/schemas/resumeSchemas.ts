@@ -113,32 +113,35 @@ export const aiReviewInputSchema = z.object({
 export const importBasicsSchema = z.object({
   name: z.string(),
   title: z.string(),
-  email: z.literal("").or(z.string().email()),
-  linkedin: z.literal("").or(z.string().url()),
-  website: z.literal("").or(z.string().url()),
+  email: z.string().optional().default(""),
+  linkedin: z.string().optional().default(""),
+  website: z.string().optional().default(""),
   phone: z.object({
     value: z.string(),
-    breakAfter: z.boolean(),
+    breakAfter: z.boolean().optional().default(false),
   }),
   location: z.object({
     value: z.string(),
-    breakAfter: z.boolean(),
+    breakAfter: z.boolean().optional().default(false),
   }),
-  customFields: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      iconName: z.string(),
-      value: z.string(),
-      breakAfter: z.boolean().optional(),
-    })
-  ),
+  customFields: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        iconName: z.string(),
+        value: z.string(),
+        breakAfter: z.boolean().optional(),
+      })
+    )
+    .optional()
+    .default([]),
   alignment: z.enum(["start", "center", "end"]).optional(),
   photo: z
     .object({
       url: z.string(),
-      size: z.number().min(40).max(200),
-      borderRadius: z.number().min(0).max(100),
+      size: z.number(),
+      borderRadius: z.number(),
       visible: z.boolean(),
     })
     .optional(),
@@ -156,7 +159,7 @@ export const importExperienceSchema = z.object({
   dateRange: z.string(),
   location: z.string(),
   employmentType: z.string(),
-  website: z.literal("").or(z.string().url()),
+  website: z.string().optional().default(""),
   summary: z.string(),
 });
 
@@ -165,9 +168,9 @@ export const importProjectSchema = z.object({
   name: z.string(),
   description: z.string(),
   date: z.string(),
-  website: z.literal("").or(z.string().url()),
+  website: z.string().optional().default(""),
   summary: z.string(),
-  keywords: z.array(z.string()),
+  keywords: z.array(z.string()).optional().default([]),
 });
 
 export const importEducationSchema = z.object({
@@ -176,14 +179,14 @@ export const importEducationSchema = z.object({
   degree: z.string(),
   studyField: z.string(),
   date: z.string(),
-  website: z.literal("").or(z.string().url()),
+  website: z.string().optional().default(""),
   summary: z.string(),
 });
 
 export const importSkillSchema = z.object({
   id: z.string(),
   name: z.string(),
-  keywords: z.array(z.string()).optional(),
+  keywords: z.array(z.string()).optional().default([]),
 });
 
 export const importLanguageSchema = z.object({
@@ -193,7 +196,7 @@ export const importLanguageSchema = z.object({
   certificate: z.string().optional(),
   score: z.string().optional(),
   date: z.string().optional(),
-  website: z.literal("").or(z.string().url()).optional(),
+  website: z.string().optional(),
   listening: z.string().optional(),
   speaking: z.string().optional(),
   reading: z.string().optional(),
@@ -205,33 +208,35 @@ export const importInterestSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  keywords: z.array(z.string()).optional(),
+  keywords: z.array(z.string()).optional().default([]),
 });
 
 export const importSectionTitlesSchema = z.object({
-  summary: z.string(),
-  experience: z.string(),
-  projects: z.string(),
-  education: z.string(),
-  skills: z.string(),
-  languages: z.string(),
-  certifications: z.string(),
-  awards: z.string(),
-  volunteering: z.string(),
+  summary: z.string().optional(),
+  experience: z.string().optional(),
+  projects: z.string().optional(),
+  education: z.string().optional(),
+  skills: z.string().optional(),
+  languages: z.string().optional(),
+  certifications: z.string().optional(),
+  awards: z.string().optional(),
+  volunteering: z.string().optional(),
   interests: z.string().optional(),
 });
 
 export const importPdfSettingsSchema = z.object({
   fontFamily: z.string(),
   fontSize: z.number(),
-  fontCategory: z.enum([
-    "serif",
-    "sans-serif",
-    "monospace",
-    "display",
-    "handwriting",
-    "ATS-Friendly",
-  ]),
+  fontCategory: z
+    .enum([
+      "serif",
+      "sans-serif",
+      "monospace",
+      "display",
+      "handwriting",
+      "ATS-Friendly",
+    ])
+    .or(z.string()),
   lineHeight: z.number(),
   verticalSpacing: z.number(),
   skillsLayout: z.enum(["inline", "grid-col", "grid-row"]).or(z.string()),
@@ -249,16 +254,16 @@ export const importPdfSettingsSchema = z.object({
 export const cvMasterJsonSchema = z.object({
   basics: importBasicsSchema,
   summary: importSummarySchema,
-  experience: z.array(importExperienceSchema),
-  projects: z.array(importProjectSchema),
-  education: z.array(importEducationSchema),
-  skills: z.array(importSkillSchema),
-  languages: z.array(importLanguageSchema),
-  certifications: z.array(z.any()),
-  awards: z.array(z.any()),
-  volunteering: z.array(z.any()),
-  interests: z.array(importInterestSchema).optional(),
-  sectionTitles: importSectionTitlesSchema,
-  pdfSettings: importPdfSettingsSchema,
-  hiddenItemIds: z.array(z.string()).optional(),
+  experience: z.array(importExperienceSchema).optional().default([]),
+  projects: z.array(importProjectSchema).optional().default([]),
+  education: z.array(importEducationSchema).optional().default([]),
+  skills: z.array(importSkillSchema).optional().default([]),
+  languages: z.array(importLanguageSchema).optional().default([]),
+  certifications: z.array(z.any()).optional().default([]),
+  awards: z.array(z.any()).optional().default([]),
+  volunteering: z.array(z.any()).optional().default([]),
+  interests: z.array(importInterestSchema).optional().default([]),
+  sectionTitles: importSectionTitlesSchema.optional(),
+  pdfSettings: importPdfSettingsSchema.optional(),
+  hiddenItemIds: z.array(z.string()).optional().default([]),
 });

@@ -6,6 +6,7 @@ import {
 
 const FALLBACK_GOOGLE_FONTS: Record<Exclude<FontCategory, "ATS-Friendly">, FontItem[]> = {
   "sans-serif": [
+    { family: "Be Vietnam Pro", category: "sans-serif" },
     { family: "Inter", category: "sans-serif" },
     { family: "Roboto", category: "sans-serif" },
     { family: "Open Sans", category: "sans-serif" },
@@ -76,7 +77,7 @@ export function buildGoogleFontUrl(
 
 export function loadFontStylesheet(
   fontFamily: string,
-  weights: string[] = ["400", "700"]
+  weights: string[] = ["400", "500", "600", "700"]
 ): void {
   if (typeof document === "undefined" || !fontFamily) return;
   const href = buildGoogleFontUrl(fontFamily, weights);

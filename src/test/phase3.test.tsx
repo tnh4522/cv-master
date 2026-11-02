@@ -26,6 +26,10 @@ import {
   validateBasicsForPdfExport,
 } from '@/services/pdfService';
 import { ResumeSheet } from '@/components/preview/ResumeSheet';
+import { SummaryEditor } from '@/components/editor/SummaryEditor';
+import { ImportDialog } from '@/components/modals/ImportDialog';
+import { cvMasterJsonSchema } from '@/schemas/resumeSchemas';
+import { fireEvent, waitFor } from '@testing-library/react';
 
 describe('Phase 3 Import & Export — PDF, Image, JSON & Profile Photo Adapters', () => {
   beforeEach(() => {
@@ -226,5 +230,209 @@ describe('Phase 3 Import & Export — PDF, Image, JSON & Profile Photo Adapters'
     expect(
       screen.queryByAltText(store.resumeData.basics.name)
     ).not.toBeInTheDocument();
+  });
+
+  it('imports a real-world CVMaster JSON backup via ImportDialog without losing Summary or sectionTitles', async () => {
+    const userCvJson = {
+      basics: {
+        name: 'Trần Ngọc Huy',
+        title: 'Information Technology Engineer',
+        email: 'tnh2045@gmail.com',
+        linkedin: 'https://www.linkedin.com/in/tran-huy-183ba1194/',
+        website: 'https://huytran-4522.vercel.app/',
+        phone: { value: '0777 408 164', breakAfter: true },
+        location: { value: 'Hoa Khanh, Da Nang', breakAfter: true },
+        customFields: [],
+        alignment: 'start',
+        photo: {
+          url: 'https://res.cloudinary.com/daswys0i8/image/upload/v1792735129/profile-photos/ywakiddjw0ivqnffddyi.jpg',
+          size: 100,
+          borderRadius: 4,
+          visible: true,
+        },
+      },
+      summary: {
+        sectionTitle: 'Professional Summary',
+        content:
+          '<p>Information Technology Engineer with a Very Good degree classification (GPA: 8.39/10) and over two years of experience developing and troubleshooting enterprise software at a French technology company.</p>',
+      },
+      experience: [
+        {
+          name: 'Lundi Matin Groupe (France)',
+          position: 'Full-Stack Developer',
+          dateRange: '03/2024 – 10/2026',
+          location: 'Da Nang, Vietnam',
+          employmentType: 'Full-time',
+          website: '',
+          summary:
+            '<ul><li>Developed, maintained, and troubleshot ERP, CRM, and e-commerce systems used by customers in France.</li></ul>',
+          id: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+        },
+        {
+          id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+          name: 'Tekup JSC',
+          position: 'Front-End Developer Intern',
+          dateRange: '05/2023 – 07/2023',
+          location: 'Da Nang, Vietnam',
+          employmentType: 'Internship',
+          website: '',
+          summary: '<ul><li>Built responsive websites for clients.</li></ul>',
+        },
+      ],
+      projects: [
+        {
+          id: 'p-networkquest-0004',
+          name: 'Network Quest – Networking Practice Platform',
+          description: 'Personal Project – Networking',
+          date: '2024',
+          website: 'https://network-quest-omega.vercel.app/',
+          summary: '<ul><li>Developed a web application for networking.</li></ul>',
+          keywords: ['Recharts', 'Next.js 16', 'React 19', 'TypeScript'],
+        },
+      ],
+      education: [
+        {
+          name: 'The University of Danang – University of Science and Technology',
+          degree: 'Engineer’s Degree',
+          studyField: 'Information Technology',
+          date: '09/2020 – 09/2025',
+          website: '',
+          summary: '<p>Very Good degree classification | GPA: 8.39/10</p>',
+          id: 'b8c9d0e1-f2a3-4567-8901-890123456789',
+        },
+      ],
+      skills: [
+        {
+          id: 'it-networking',
+          name: 'Networking',
+          keywords: ['LAN/WAN', 'TCP/IP', 'IPv4', 'Subnetting', 'VLAN'],
+        },
+      ],
+      languages: [
+        {
+          id: 'b2b2b2b2-c3c3-4d4d-8e5e-f6f6f6f6f6f6',
+          name: 'English',
+          level: 'Basic to Intermediate (TOEIC 510)',
+        },
+        {
+          id: 'dca640d6-e4c1-4fc3-b99e-05b3f8fc4feb',
+          name: 'French',
+          level: 'Intermediate (DELF B1)',
+        },
+      ],
+      certifications: [
+        {
+          name: 'TOEIC – Test of English for International Communication',
+          issuer: 'IIG Vietnam',
+          date: '01/2025 - 01/2027',
+          website: '',
+          summary: '<p>Score: 510/990</p>',
+          id: 'b3c07945-d010-4f7f-a65e-3baef82e24b4',
+        },
+      ],
+      awards: [
+        {
+          name: 'First Prize – DUT Hackathon',
+          issuer: 'KMS Technology',
+          date: '02/2023',
+          website: '',
+          summary: '',
+          id: 'b0c1d2e3-f4a5-6789-0123-012345678901',
+        },
+      ],
+      volunteering: [
+        {
+          name: 'The University of Danang Summer Volunteer Campaign 2022',
+          position: 'Volunteer',
+          date: '07/2022',
+          location: 'Da Nang, Vietnam',
+          summary: '<p>Actively participated in the campaign.</p>',
+          id: 'd8e2f3a4-1b5c-4d6e-8f7a-8b9c0d1e2f3a',
+        },
+      ],
+      sectionTitles: {
+        summary: 'Professional Summary',
+        experience: 'Professional Experience',
+        projects: 'Projects',
+        education: 'Education',
+        skills: 'Technical Skills',
+        languages: 'Languages',
+        certifications: 'Certifications',
+        awards: 'Awards',
+        volunteering: 'Volunteer Experience',
+      },
+      pdfSettings: {
+        fontFamily: 'Be Vietnam Pro',
+        fontSize: 14,
+        fontCategory: 'sans-serif',
+        lineHeight: 6,
+        scale: 1.2,
+        verticalSpacing: 1,
+        skillsLayout: 'inline',
+        margin: {
+          MIN: 10,
+          MAX: 50,
+          INITIAL: 20,
+          VALUE: 20,
+        },
+        pageBreakLine: true,
+      },
+      hiddenItemIds: [
+        'p-foodmart-0001',
+        'p-ashion-0002',
+        'p-tarot-0003',
+        'b2c3d4e5-f6a7-8901-bcde-f23456789012',
+        'p-networkquest-0004',
+      ],
+    };
+
+    const parsed = cvMasterJsonSchema.safeParse(userCvJson);
+    expect(parsed.success).toBe(true);
+
+    // Render SummaryEditor + ImportDialog + ResumeSheet together to verify no race condition overwrites summary
+    render(
+      <div>
+        <SummaryEditor />
+        <ImportDialog open={true} onOpenChange={() => {}} />
+        <ResumeSheet mode="preview" />
+      </div>
+    );
+
+    const jsonFile = new File([JSON.stringify(userCvJson)], 'tran-ngoc-huy-cv.json', {
+      type: 'application/json',
+    });
+
+    const inputEl = screen.getByTestId('import-file-input');
+    fireEvent.change(inputEl, { target: { files: [jsonFile] } });
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/JSON file validated successfully/i)
+      ).toBeInTheDocument();
+    });
+
+    const importBtn = screen.getByRole('button', { name: /^Import$/i });
+    expect(importBtn).not.toBeDisabled();
+    fireEvent.click(importBtn);
+
+    await waitFor(() => {
+      expect(useResumeStore.getState().resumeData.basics.name).toBe(
+        'Trần Ngọc Huy'
+      );
+    });
+
+    // Wait 300ms to ensure SummaryEditor never overwrites imported summary back to default
+    await new Promise((r) => setTimeout(r, 300));
+
+    const state = useResumeStore.getState();
+    expect(state.resumeData.summary.content).toContain('GPA: 8.39/10');
+    expect(state.resumeData.sectionTitles.summary).toBe('Professional Summary');
+    expect(state.resumeData.sectionTitles.interests).toBe('Interests');
+    expect(state.hiddenItemIds).toContain('b2c3d4e5-f6a7-8901-bcde-f23456789012');
+    expect(usePdfSettingsStore.getState().pdfSettings.fontFamily).toBe(
+      'Be Vietnam Pro'
+    );
+    expect(screen.getByText('Lundi Matin Groupe (France)')).toBeInTheDocument();
+    expect(screen.queryByText('Tekup JSC')).not.toBeInTheDocument();
   });
 });

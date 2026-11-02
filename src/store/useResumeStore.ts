@@ -168,6 +168,18 @@ function buildMergedSectionOrder(persisted?: SectionKey[] | null): SectionKey[] 
 }
 
 function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeData {
+  const cleanSectionTitles = Object.fromEntries(
+    Object.entries(persisted?.sectionTitles || {}).filter(
+      ([, v]) => typeof v === "string" && v.trim().length > 0
+    )
+  );
+  const mergedSummary = {
+    ...DEFAULT_RESUME_DATA.summary,
+    ...(typeof persisted?.summary === "object" && persisted?.summary !== null
+      ? persisted.summary
+      : {}),
+  };
+
   return {
     ...DEFAULT_RESUME_DATA,
     ...(persisted || {}),
@@ -191,15 +203,11 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
       },
       customFields: persisted?.basics?.customFields ?? DEFAULT_RESUME_DATA.basics.customFields,
     },
-    summary: {
-      ...DEFAULT_RESUME_DATA.summary,
-      ...(typeof persisted?.summary === "object" && persisted?.summary !== null
-        ? persisted.summary
-        : {}),
-    },
+    summary: mergedSummary,
     sectionTitles: {
       ...DEFAULT_RESUME_DATA.sectionTitles,
-      ...(persisted?.sectionTitles || {}),
+      ...(mergedSummary.sectionTitle ? { summary: mergedSummary.sectionTitle } : {}),
+      ...cleanSectionTitles,
     },
   };
 }
@@ -246,7 +254,15 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
   setResumeData: (data) => {
     const merged = buildMergedResumeData(data);
     localStorage.setItem("resumeData", JSON.stringify(merged));
-    set({ resumeData: merged });
+    if (Array.isArray(data?.hiddenItemIds)) {
+      localStorage.setItem(
+        "hiddenItemIds",
+        JSON.stringify({ hiddenItemIds: data.hiddenItemIds })
+      );
+      set({ resumeData: merged, hiddenItemIds: data.hiddenItemIds });
+    } else {
+      set({ resumeData: merged });
+    }
   },
 
   updateBasics: (patch) => {
@@ -386,13 +402,15 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
   },
 
   setSectionOrder: (order) => {
-    set(() => ({ sectionOrder: order }));
-    localStorage.setItem("sectionOrder", JSON.stringify({ sectionOrder: order }));
+    const mergedOrder = buildMergedSectionOrder(order);
+    set(() => ({ sectionOrder: mergedOrder }));
+    localStorage.setItem("sectionOrder", JSON.stringify({ sectionOrder: mergedOrder }));
   },
 
   updateSectionOrder: (order) => {
-    set(() => ({ sectionOrder: order }));
-    localStorage.setItem("sectionOrder", JSON.stringify({ sectionOrder: order }));
+    const mergedOrder = buildMergedSectionOrder(order);
+    set(() => ({ sectionOrder: mergedOrder }));
+    localStorage.setItem("sectionOrder", JSON.stringify({ sectionOrder: mergedOrder }));
   },
 
   resetSectionOrder: () => {
@@ -472,6 +490,11 @@ export const usePdfSettingsStore = create<PdfSettingsStoreState>((set) => ({
       const nextSettings: PdfSettings = {
         ...state.pdfSettings,
         ...patch,
+        margin: {
+          ...DEFAULT_PDF_SETTINGS.margin,
+          ...state.pdfSettings.margin,
+          ...(patch.margin || {}),
+        },
       };
       localStorage.setItem("pdfSetting", JSON.stringify(nextSettings));
       return { pdfSettings: nextSettings };

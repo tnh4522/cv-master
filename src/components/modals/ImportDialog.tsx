@@ -95,17 +95,104 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const validateJsonFile = async (file: File) => {
+    setErrorMessage('');
+    try {
+      const rawText =
+        typeof file.text === 'function'
+          ? await file.text()
+          : await new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(String(reader.result || ''));
+              reader.onerror = () => reject(new Error('Failed to read JSON'));
+              reader.readAsText(file);
+            });
 
+      const parsedJson = JSON.parse(rawText);
+      const currentPdfSettings = usePdfSettingsStore.getState().pdfSettings;
+
+      const candidate = parsedJson.resumeData
+        ? {
+            ...parsedJson.resumeData,
+            pdfSettings:
+              parsedJson.pdfSettings ||
+              parsedJson.resumeData?.pdfSettings ||
+              currentPdfSettings,
+            hiddenItemIds:
+              parsedJson.hiddenItemIds ||
+              parsedJson.resumeData?.hiddenItemIds ||
+              [],
+          }
+        : {
+            ...parsedJson,
+            pdfSettings: parsedJson.pdfSettings || currentPdfSettings,
+            hiddenItemIds: parsedJson.hiddenItemIds || [],
+          };
+
+      const validation = cvMasterJsonSchema.safeParse(candidate);
+      if (!validation.success) {
+        const firstIssue = validation.error.issues[0];
+        throw new Error(
+          firstIssue
+            ? `Schema error at "${firstIssue.path.join('.')}": ${firstIssue.message}`
+            : 'The selected JSON file does not match the CVMaster schema.'
+        );
+      }
+
+      const validatedData = validation.data;
+      setValidatedJsonPayload({
+        resumeData: validatedData as unknown as ResumeData,
+        pdfSettings: (validatedData.pdfSettings ||
+          currentPdfSettings) as PdfSettings,
+        hiddenItemIds: validatedData.hiddenItemIds || [],
+        sectionOrder: Array.isArray(parsedJson.sectionOrder)
+          ? (parsedJson.sectionOrder as SectionKey[])
+          : undefined,
+      });
+      setIsJsonValidated(true);
+      toast({
+        title: 'JSON Validated',
+        description: 'File structure is valid. Click Import to load your CV.',
+      });
+    } catch (err) {
+      setIsJsonValidated(false);
+      setValidatedJsonPayload(null);
+      setErrorMessage(
+        err instanceof Error
+          ? err.message
+          : 'Invalid CVMaster JSON file format.'
+      );
+    }
+  };
+
+  const processSelectedFile = async (file: File) => {
     setErrorMessage('');
     setIsJsonValidated(false);
     setValidatedJsonPayload(null);
     setExtractedPdfText('');
     setPdfPreviewText('');
 
-    if (format === 'pdf') {
+    const lowerName = file.name.toLowerCase();
+    let effectiveFormat = format;
+
+    // Auto-detect format if user selects/drops a JSON, PDF, or Image file
+    if (lowerName.endsWith('.json') || file.type === 'application/json') {
+      effectiveFormat = 'cv-master-json';
+      if (format !== 'cv-master-json') setFormat('cv-master-json');
+    } else if (lowerName.endsWith('.pdf') || file.type === 'application/pdf') {
+      effectiveFormat = 'pdf';
+      if (format !== 'pdf') setFormat('pdf');
+    } else if (
+      lowerName.endsWith('.png') ||
+      lowerName.endsWith('.jpg') ||
+      lowerName.endsWith('.jpeg') ||
+      file.type.startsWith('image/')
+    ) {
+      effectiveFormat = 'image';
+      if (format !== 'image') setFormat('image');
+    }
+
+    if (effectiveFormat === 'pdf') {
       const check = validatePdfImportFile(file);
       if (!check.valid) {
         setErrorMessage(check.error || 'Invalid PDF file.');
@@ -130,7 +217,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       return;
     }
 
-    if (format === 'image') {
+    if (effectiveFormat === 'image') {
       const check = validateImageImportFile(file);
       if (!check.valid) {
         setErrorMessage(check.error || 'Invalid image file.');
@@ -141,79 +228,27 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       return;
     }
 
-    if (format === 'cv-master-json') {
-      if (!file.name.toLowerCase().endsWith('.json')) {
+    if (effectiveFormat === 'cv-master-json') {
+      if (!lowerName.endsWith('.json') && file.type !== 'application/json') {
         setErrorMessage('Please select a valid .json file.');
         setSelectedFile(null);
         return;
       }
       setSelectedFile(file);
+      await validateJsonFile(file);
     }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    await processSelectedFile(file);
   };
 
   // Step 1 for `cv-master-json`: Validate (`df`)
   const handleValidateJson = async () => {
     if (!selectedFile) return;
-    setErrorMessage('');
-    try {
-      const rawText =
-        typeof selectedFile.text === 'function'
-          ? await selectedFile.text()
-          : await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(String(reader.result || ''));
-              reader.onerror = () => reject(new Error('Failed to read JSON'));
-              reader.readAsText(selectedFile);
-            });
-
-      const parsedJson = JSON.parse(rawText);
-      const currentPdfSettings = usePdfSettingsStore.getState().pdfSettings;
-
-      const candidate = parsedJson.resumeData
-        ? {
-            ...parsedJson.resumeData,
-            pdfSettings: parsedJson.pdfSettings || currentPdfSettings,
-            hiddenItemIds: parsedJson.hiddenItemIds || [],
-          }
-        : {
-            ...parsedJson,
-            pdfSettings: parsedJson.pdfSettings || currentPdfSettings,
-            hiddenItemIds: parsedJson.hiddenItemIds || [],
-          };
-
-      const validation = cvMasterJsonSchema.safeParse(candidate);
-      if (!validation.success) {
-        const firstIssue = validation.error.issues[0];
-        throw new Error(
-          firstIssue
-            ? `Schema error at "${firstIssue.path.join('.')}": ${firstIssue.message}`
-            : 'The selected JSON file does not match the CVMaster schema.'
-        );
-      }
-
-      const validatedData = validation.data;
-      setValidatedJsonPayload({
-        resumeData: validatedData as unknown as ResumeData,
-        pdfSettings: validatedData.pdfSettings as PdfSettings,
-        hiddenItemIds: validatedData.hiddenItemIds || [],
-        sectionOrder: Array.isArray(parsedJson.sectionOrder)
-          ? (parsedJson.sectionOrder as SectionKey[])
-          : undefined,
-      });
-      setIsJsonValidated(true);
-      toast({
-        title: 'JSON Validated',
-        description: 'File structure is valid. Click Import to load your CV.',
-      });
-    } catch (err) {
-      setIsJsonValidated(false);
-      setValidatedJsonPayload(null);
-      setErrorMessage(
-        err instanceof Error
-          ? err.message
-          : 'Invalid CVMaster JSON file format.'
-      );
-    }
+    await validateJsonFile(selectedFile);
   };
 
   // Final Import Action (`uf` / `Fu` / `zu`)
@@ -357,6 +392,18 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const droppedFile = e.dataTransfer?.files?.[0];
+                if (droppedFile) {
+                  void processSelectedFile(droppedFile);
+                }
+              }}
               disabled={isImporting || isExtractingPdf}
               className="flex w-full cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-border bg-muted/30 p-6 text-center transition-colors hover:border-primary/50 hover:bg-muted/50"
             >

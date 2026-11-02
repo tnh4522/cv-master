@@ -4,7 +4,6 @@ import { Button, Input, Separator } from '@/components/ui/primitives';
 import { SectionIcon } from '@/components/icons/CustomIcons';
 import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { useResumeStore } from '@/store/useResumeStore';
-import { useDebounceValue } from '@/lib/utils';
 
 export function SummaryEditor() {
   const { resumeData, updateSummary, updateSectionTitle } = useResumeStore();
@@ -14,20 +13,14 @@ export function SummaryEditor() {
     resumeData.summary.sectionTitle ||
     'Summary';
 
-  const [localSummary, setLocalSummary] = useState(currentContent);
-  const debouncedSummary = useDebounceValue(localSummary, 200);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(currentTitle);
 
   useEffect(() => {
-    setLocalSummary(currentContent);
-  }, [currentContent]);
-
-  useEffect(() => {
-    if (debouncedSummary !== currentContent) {
-      updateSummary(debouncedSummary);
+    if (!isEditingTitle) {
+      setTitleDraft(currentTitle);
     }
-  }, [debouncedSummary, currentContent, updateSummary]);
+  }, [currentTitle, isEditingTitle]);
 
   const handleSaveTitle = () => {
     const trimmed = titleDraft.trim() || 'Summary';
@@ -86,8 +79,8 @@ export function SummaryEditor() {
       </div>
 
       <RichTextEditor
-        content={localSummary}
-        onUpdate={(html) => setLocalSummary(html)}
+        content={currentContent}
+        onUpdate={(html) => updateSummary(html)}
       />
 
       <Separator className="my-4" />
