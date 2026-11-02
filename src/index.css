@@ -86,10 +86,15 @@ body {
 }
 
 .hidden-fix {
+  position: fixed;
+  left: -10000px;
+  top: 0;
+  width: 210mm;
   visibility: hidden;
   opacity: 0;
   pointer-events: none;
   height: 0;
+  overflow: hidden;
 }
 
 [data-radix-scroll-area-viewport] > div:first-child {

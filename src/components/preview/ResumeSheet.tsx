@@ -175,7 +175,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             </h3>
             <div className="space-y-2.5">
               {items.map((item) => (
-                <div key={item.id} className="space-y-0.5">
+                <div key={item.id} data-resume-entry="true" className="space-y-0.5">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="font-semibold text-neutral-900">
                       {item.website ? (
@@ -197,7 +197,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       )}
                     </div>
                     {item.dateRange && (
-                      <span className="shrink-0 text-neutral-700">
+                      <span className="shrink-0 whitespace-nowrap text-neutral-700">
                         {item.dateRange}
                       </span>
                     )}
@@ -206,7 +206,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                     <div className="flex items-baseline justify-between gap-2 text-neutral-700">
                       <span className="italic">{item.position}</span>
                       {item.location && (
-                        <span className="shrink-0">{item.location}</span>
+                        <span className="shrink-0 whitespace-nowrap">{item.location}</span>
                       )}
                     </div>
                   )}
@@ -241,7 +241,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             </h3>
             <div className="space-y-2.5">
               {items.map((item) => (
-                <div key={item.id} className="space-y-0.5">
+                <div key={item.id} data-resume-entry="true" className="space-y-0.5">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="font-semibold text-neutral-900">
                       {item.website ? (
@@ -263,7 +263,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       )}
                     </div>
                     {item.date && (
-                      <span className="shrink-0 text-neutral-700">
+                      <span className="shrink-0 whitespace-nowrap text-neutral-700">
                         {item.date}
                       </span>
                     )}
@@ -308,7 +308,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             </h3>
             <div className="space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="space-y-0.5">
+                <div key={item.id} data-resume-entry="true" className="space-y-0.5">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="font-semibold text-neutral-900">
                       {item.website ? (
@@ -325,7 +325,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       )}
                     </div>
                     {item.date && (
-                      <span className="shrink-0 text-neutral-700">
+                      <span className="shrink-0 whitespace-nowrap text-neutral-700">
                         {item.date}
                       </span>
                     )}
@@ -376,6 +376,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
               {items.map((item) => (
                 <div
                   key={item.id}
+                  data-resume-entry="true"
                   className="text-neutral-800"
                   style={{ lineHeight: lineHeightStyle }}
                 >
@@ -438,6 +439,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                 return (
                   <div
                     key={item.id}
+                    data-resume-entry="true"
                     className="text-neutral-800"
                     style={{ lineHeight: lineHeightStyle }}
                   >
@@ -471,7 +473,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                         )}
                       </div>
                       {item.date && (
-                        <span className="shrink-0 text-neutral-700">
+                        <span className="shrink-0 whitespace-nowrap text-neutral-700">
                           {item.date}
                         </span>
                       )}
@@ -507,7 +509,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             </h3>
             <div className="space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="space-y-0.5">
+                <div key={item.id} data-resume-entry="true" className="space-y-0.5">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="font-semibold text-neutral-900">
                       {item.website ? (
@@ -529,7 +531,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       )}
                     </div>
                     {item.date && (
-                      <span className="shrink-0 text-neutral-700">
+                      <span className="shrink-0 whitespace-nowrap text-neutral-700">
                         {item.date}
                       </span>
                     )}
@@ -565,7 +567,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             </h3>
             <div className="space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="space-y-0.5">
+                <div key={item.id} data-resume-entry="true" className="space-y-0.5">
                   <div className="flex items-baseline justify-between gap-2">
                     <div className="font-semibold text-neutral-900">
                       {item.website ? (
@@ -587,7 +589,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       )}
                     </div>
                     {item.date && (
-                      <span className="shrink-0 text-neutral-700">
+                      <span className="shrink-0 whitespace-nowrap text-neutral-700">
                         {item.date}
                       </span>
                     )}
@@ -623,13 +625,13 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             </h3>
             <div className="space-y-2">
               {items.map((item) => (
-                <div key={item.id} className="space-y-0.5">
+                <div key={item.id} data-resume-entry="true" className="space-y-0.5">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="font-semibold text-neutral-900">
                       {item.name}
                     </span>
                     {item.date && (
-                      <span className="shrink-0 text-neutral-700">
+                      <span className="shrink-0 whitespace-nowrap text-neutral-700">
                         {item.date}
                       </span>
                     )}
@@ -638,7 +640,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                     <div className="flex items-baseline justify-between gap-2 text-neutral-700">
                       <span className="italic">{item.position}</span>
                       {item.location && (
-                        <span className="shrink-0">{item.location}</span>
+                        <span className="shrink-0 whitespace-nowrap">{item.location}</span>
                       )}
                     </div>
                   )}
@@ -675,6 +677,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
               {items.map((item) => (
                 <div
                   key={item.id}
+                  data-resume-entry="true"
                   className="text-neutral-800"
                   style={{ lineHeight: lineHeightStyle }}
                 >
@@ -710,11 +713,13 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
       <div
         ref={setRefs}
         data-testid="resume-sheet"
-        className="resume-sheet relative flex flex-col bg-white text-neutral-900 shadow-xl"
+        className={`resume-sheet relative flex flex-col bg-white text-neutral-900 ${
+          mode === 'preview' ? 'shadow-xl' : 'shadow-none'
+        }`}
         style={{
-          width: `${A4_WIDTH_PX}px`,
-          minWidth: `${A4_WIDTH_PX}px`,
-          minHeight: `${A4_HEIGHT_PX}px`,
+          width: mode === 'preview' ? `${A4_WIDTH_PX}px` : '100%',
+          minWidth: mode === 'preview' ? `${A4_WIDTH_PX}px` : '100%',
+          minHeight: mode === 'preview' ? `${A4_HEIGHT_PX}px` : 'auto',
           fontSize: `${fontSize}px`,
           fontFamily: `"${fontFamily}", sans-serif`,
           padding:

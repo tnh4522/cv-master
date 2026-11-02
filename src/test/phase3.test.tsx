@@ -192,6 +192,10 @@ describe('Phase 3 Import & Export — PDF, Image, JSON & Profile Photo Adapters'
     expect(html).toContain('<!DOCTYPE html>');
     expect(html).toContain('Katherine Johnson');
     expect(html).not.toContain('data-page-break-indicator="true"');
+    expect(html).not.toContain('shadow-xl');
+    expect(html).toContain('wght@400;500;600;700');
+    expect(html).toContain('[data-resume-entry="true"]');
+    expect(html).toContain('break-inside: avoid');
 
     // Verify browser print adapter completes cleanly without throwing
     await expect(
