@@ -27,6 +27,7 @@ import {
   fetchGoogleFontsByCategory,
   loadFontStylesheet,
 } from '@/services/fontsService';
+import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore } from '@/store/useResumeStore';
 
 interface LazyFontItemProps {
@@ -61,6 +62,7 @@ function LazyFontItem({ family, isSelected, onSelect }: LazyFontItemProps) {
 
 export function FontPicker() {
   const { pdfSettings, updatePdfSettings } = usePdfSettingsStore();
+  const { t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [fonts, setFonts] = useState<string[]>([]);
 
@@ -82,7 +84,7 @@ export function FontPicker() {
   return (
     <div className="space-y-3">
       <div className="space-y-1.5">
-        <Label className="text-xs">Font Category</Label>
+        <Label className="text-xs">{t('controls.fontCategory')}</Label>
         <Select
           value={currentCategory}
           onValueChange={(val) =>
@@ -90,7 +92,7 @@ export function FontPicker() {
           }
         >
           <SelectTrigger className="h-9 text-xs">
-            <SelectValue placeholder="Select category" />
+            <SelectValue placeholder={t('controls.selectCategory')} />
           </SelectTrigger>
           <SelectContent>
             {FONT_CATEGORIES.map((cat) => (
@@ -103,7 +105,7 @@ export function FontPicker() {
       </div>
 
       <div className="space-y-1.5">
-        <Label className="text-xs">Font Family</Label>
+        <Label className="text-xs">{t('controls.fontFamily')}</Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -123,9 +125,9 @@ export function FontPicker() {
           </PopoverTrigger>
           <PopoverContent className="w-64 p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search font family..." />
+              <CommandInput placeholder={t('controls.searchFont')} />
               <CommandList>
-                <CommandEmpty>No font found.</CommandEmpty>
+                <CommandEmpty>{t('controls.noFontFound')}</CommandEmpty>
                 <CommandGroup>
                   {fonts.map((family) => (
                     <LazyFontItem

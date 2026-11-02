@@ -24,6 +24,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { toast } from '@/components/ui/toast';
+import { useLanguage } from '@/context/LanguageContext';
 import { aiReviewInputSchema } from '@/schemas/resumeSchemas';
 import { useResumeStore, useReviewStore } from '@/store/useResumeStore';
 import { analyzeResumeForRole } from '@/services/aiService';
@@ -39,6 +40,7 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
   const navigate = useNavigate();
   const { resumeData } = useResumeStore();
   const { currentAnalysis, setAnalysis } = useReviewStore();
+  const { t } = useLanguage();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const form = useForm<AiReviewFormValues>({
@@ -59,15 +61,15 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
       });
       setAnalysis(analysis);
       toast({
-        title: 'CV Analysis Complete',
-        description: `Overall readiness score: ${analysis.overallScore}/100`,
+        title: t('aiReview.completeTitle'),
+        description: t('aiReview.completeDesc', { score: analysis.overallScore }),
       });
       onOpenChange(false);
       navigate('/review');
     } catch (err) {
       toast({
         variant: 'destructive',
-        title: 'Analysis failed',
+        title: t('aiReview.failedTitle'),
         description:
           err instanceof Error
             ? err.message
@@ -90,10 +92,10 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            <span>AI CV Review & ATS Scoring</span>
+            <span>{t('aiReview.dialogTitle')}</span>
           </DialogTitle>
           <DialogDescription>
-            Evaluate your CV against your target job title and job description (min 100 characters) using Gemini AI for personalized ATS feedback and an action plan.
+            {t('aiReview.dialogDesc')}
           </DialogDescription>
         </DialogHeader>
 
@@ -103,9 +105,9 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
             className="flex flex-col items-center justify-center gap-3 py-10 text-center"
           >
             <Loader2 className="h-10 w-10 animate-spin text-primary" />
-            <p className="text-base font-semibold">AI is reviewing your CV...</p>
+            <p className="text-base font-semibold">{t('aiReview.analyzingTitle')}</p>
             <p className="max-w-xs text-xs text-muted-foreground">
-              Analyzing keyword alignment, experience relevance, resume structure, and ATS compatibility.
+              {t('aiReview.analyzingDesc')}
             </p>
           </div>
         ) : (
@@ -115,10 +117,14 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
                 <div className="flex items-center justify-between rounded-lg border border-primary/30 bg-primary/5 px-3.5 py-2.5">
                   <div className="text-xs">
                     <p className="font-semibold text-foreground">
-                      Previous analysis available ({currentAnalysis.overallScore}/100)
+                      {t('aiReview.previousAvailable', {
+                        score: currentAnalysis.overallScore,
+                      })}
                     </p>
                     <p className="text-muted-foreground">
-                      Fit Level: {currentAnalysis.summary.fitLevel}
+                      {t('aiReview.fitLevelLabel', {
+                        level: currentAnalysis.summary.fitLevel,
+                      })}
                     </p>
                   </div>
                   <Button
@@ -132,7 +138,7 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
                     }}
                   >
                     <History className="h-3.5 w-3.5" />
-                    <span>View last Review</span>
+                    <span>{t('aiReview.viewLastReview')}</span>
                   </Button>
                 </div>
               )}
@@ -142,10 +148,10 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
                 name="jobTitle"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Target Job Title *</FormLabel>
+                    <FormLabel>{t('aiReview.targetJobTitle')}</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="e.g. Senior Frontend Engineer"
+                        placeholder={t('aiReview.targetJobPlaceholder')}
                         {...field}
                       />
                     </FormControl>
@@ -159,10 +165,10 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
                 name="jobDescription"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Job Description * (min 100 characters)</FormLabel>
+                    <FormLabel>{t('aiReview.jobDescription')}</FormLabel>
                     <FormControl>
                       <Textarea
-                        placeholder="Paste the full job description, responsibilities, and required qualifications..."
+                        placeholder={t('aiReview.jobDescriptionPlaceholder')}
                         className="min-h-[130px]"
                         {...field}
                       />
@@ -178,11 +184,11 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                 >
-                  Cancel
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" className="gap-1.5">
                   <Sparkles className="h-4 w-4" />
-                  <span>AI Review</span>
+                  <span>{t('aiReview.submitBtn')}</span>
                 </Button>
               </DialogFooter>
             </form>

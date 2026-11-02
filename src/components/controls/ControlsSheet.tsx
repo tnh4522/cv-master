@@ -25,6 +25,7 @@ import {
   Switch,
 } from '@/components/ui/primitives';
 import { FontPicker } from '@/components/controls/FontPicker';
+import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import type { SkillsLayoutType } from '@/types/resume';
 
@@ -39,6 +40,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
   const { resumeData, updateBasics, resetSectionOrder } = useResumeStore();
   const { pdfSettings, updatePdfSettings, resetPdfSettings } =
     usePdfSettingsStore();
+  const { t } = useLanguage();
 
   const { alignment } = resumeData.basics;
 
@@ -51,9 +53,9 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
         <SheetHeader className="border-b border-border px-6 py-4">
           <div className="flex items-center justify-between pr-6">
             <div>
-              <SheetTitle>CV Controls & Styling</SheetTitle>
+              <SheetTitle>{t('controls.title')}</SheetTitle>
               <SheetDescription>
-                Customize layout, section order, typography, and margins.
+                {t('controls.description')}
               </SheetDescription>
             </div>
             <Button
@@ -67,7 +69,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
               }}
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              <span>Reset</span>
+              <span>{t('common.reset')}</span>
             </Button>
           </div>
         </SheetHeader>
@@ -81,11 +83,13 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
             {/* 1. Layout & Alignment */}
             <AccordionItem value="layout">
               <AccordionTrigger className="text-sm font-semibold">
-                Layout & Alignment
+                {t('controls.layoutAndAlignment')}
               </AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
                 <div className="space-y-2">
-                  <Label className="text-xs">Personal Info Alignment</Label>
+                  <Label className="text-xs">
+                    {t('controls.personalInfoAlignment')}
+                  </Label>
                   <div className="grid grid-cols-3 gap-2">
                     <Button
                       type="button"
@@ -95,7 +99,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                       onClick={() => updateBasics({ alignment: 'start' })}
                     >
                       <AlignLeft className="h-3.5 w-3.5" />
-                      <span>Left</span>
+                      <span>{t('controls.left')}</span>
                     </Button>
                     <Button
                       type="button"
@@ -105,7 +109,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                       onClick={() => updateBasics({ alignment: 'center' })}
                     >
                       <AlignCenter className="h-3.5 w-3.5" />
-                      <span>Center</span>
+                      <span>{t('controls.center')}</span>
                     </Button>
                     <Button
                       type="button"
@@ -115,13 +119,13 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                       onClick={() => updateBasics({ alignment: 'end' })}
                     >
                       <AlignRight className="h-3.5 w-3.5" />
-                      <span>Right</span>
+                      <span>{t('controls.right')}</span>
                     </Button>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs">Skills Display Layout</Label>
+                  <Label className="text-xs">{t('controls.skillsLayout')}</Label>
                   <RadioGroup
                     value={pdfSettings.skillsLayout}
                     onValueChange={(val) =>
@@ -137,7 +141,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                         htmlFor="skills-inline"
                         className="cursor-pointer text-xs font-normal"
                       >
-                        Inline
+                        {t('controls.inline')}
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2 rounded-md border border-border p-2.5">
@@ -146,7 +150,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                         htmlFor="skills-grid-col"
                         className="cursor-pointer text-xs font-normal"
                       >
-                        Grid Col
+                        {t('controls.gridCol')}
                       </Label>
                     </div>
                     <div className="flex items-center space-x-2 rounded-md border border-border p-2.5">
@@ -155,7 +159,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                         htmlFor="skills-grid-row"
                         className="cursor-pointer text-xs font-normal"
                       >
-                        Grid Row
+                        {t('controls.gridRow')}
                       </Label>
                     </div>
                   </RadioGroup>
@@ -166,7 +170,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
             {/* 2. Section Order (Drag and Drop) */}
             <AccordionItem value="sections">
               <AccordionTrigger className="text-sm font-semibold">
-                Reorder Sections
+                {t('controls.reorderSections')}
               </AccordionTrigger>
               <AccordionContent className="pt-2">
                 <Suspense
@@ -186,14 +190,14 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
             {/* 3. Typography */}
             <AccordionItem value="typography">
               <AccordionTrigger className="text-sm font-semibold">
-                Typography
+                {t('controls.typography')}
               </AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
                 <FontPicker />
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <Label className="text-xs">Font Size</Label>
+                    <Label className="text-xs">{t('controls.fontSize')}</Label>
                     <span className="text-muted-foreground">
                       {pdfSettings.fontSize}px
                     </span>
@@ -211,7 +215,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <Label className="text-xs">Line Height</Label>
+                    <Label className="text-xs">{t('controls.lineHeight')}</Label>
                     <span className="text-muted-foreground">
                       {(pdfSettings.lineHeight * 0.25).toFixed(2)}rem
                     </span>
@@ -229,7 +233,9 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
 
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <Label className="text-xs">Section Vertical Spacing</Label>
+                    <Label className="text-xs">
+                      {t('controls.verticalSpacing')}
+                    </Label>
                     <span className="text-muted-foreground">
                       {pdfSettings.verticalSpacing}
                     </span>
@@ -250,12 +256,12 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
             {/* 4. Page & Margins */}
             <AccordionItem value="page">
               <AccordionTrigger className="text-sm font-semibold">
-                Page Setup & Margins
+                {t('controls.pageSetup')}
               </AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs">
-                    <Label className="text-xs">Page Margin</Label>
+                    <Label className="text-xs">{t('controls.pageMargin')}</Label>
                     <span className="text-muted-foreground">
                       {pdfSettings.margin.VALUE}px
                     </span>
@@ -282,10 +288,10 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                       htmlFor="page-break-switch"
                       className="cursor-pointer text-xs font-medium"
                     >
-                      Show Page Break Lines
+                      {t('controls.showPageBreak')}
                     </Label>
                     <p className="text-[11px] text-muted-foreground">
-                      Display dashed A4 page boundary lines in preview
+                      {t('controls.showPageBreakDesc')}
                     </p>
                   </div>
                   <Switch

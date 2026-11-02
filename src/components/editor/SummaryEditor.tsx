@@ -3,10 +3,12 @@ import { Pencil, Check } from 'lucide-react';
 import { Button, Input, Separator } from '@/components/ui/primitives';
 import { SectionIcon } from '@/components/icons/CustomIcons';
 import { RichTextEditor } from '@/components/editor/RichTextEditor';
+import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 
 export function SummaryEditor() {
   const { resumeData, updateSummary, updateSectionTitle } = useResumeStore();
+  const { t } = useLanguage();
   const currentContent = resumeData.summary.content;
   const currentTitle =
     resumeData.sectionTitles.summary ||
@@ -65,7 +67,7 @@ export function SummaryEditor() {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 opacity-60 group-hover:opacity-100"
-                tooltipContent="Rename section"
+                tooltipContent={t('common.renameSection')}
                 onClick={() => {
                   setTitleDraft(currentTitle);
                   setIsEditingTitle(true);

@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/primitives';
 import { AiReviewDialog } from '@/components/modals/AiReviewDialog';
 import { useReviewStore } from '@/store/useResumeStore';
+import { LanguageSwitcher, useLanguage } from '@/context/LanguageContext';
 
 function getScoreColor(score: number): string {
   if (score >= 85) return 'text-emerald-600 dark:text-emerald-400';
@@ -96,6 +97,7 @@ export default function ReviewPage() {
   const { currentAnalysis } = useReviewStore();
   const [newReviewOpen, setNewReviewOpen] = useState(false);
   const [checkedItems, setCheckedItems] = useState<Record<string, boolean>>({});
+  const { t } = useLanguage();
 
   if (!currentAnalysis) {
     return (
@@ -104,18 +106,18 @@ export default function ReviewPage() {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
             <Sparkles className="h-6 w-6" />
           </div>
-          <h1 className="text-xl font-bold">No CV Analysis Found</h1>
+          <h1 className="text-xl font-bold">{t('reviewPage.noAnalysisTitle')}</h1>
           <p className="text-sm text-muted-foreground">
-            Run an AI CV Review against your target role to view your ATS score, category breakdown, and personalized action plan.
+            {t('reviewPage.noAnalysisDesc')}
           </p>
           <div className="flex justify-center gap-3 pt-2">
             <Button variant="outline" onClick={() => navigate('/')}>
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Editor
+              {t('reviewPage.backToEditor')}
             </Button>
             <Button onClick={() => setNewReviewOpen(true)}>
               <Sparkles className="mr-2 h-4 w-4" />
-              Start Analysis
+              {t('reviewPage.startAnalysis')}
             </Button>
           </div>
         </div>
@@ -138,7 +140,7 @@ export default function ReviewPage() {
   const categoryEntries = [
     {
       key: 'contentAlignment',
-      label: 'Content Alignment',
+      label: t('reviewPage.categories.contentAlignment'),
       score: detailedAnalysis.contentAlignment.score,
       feedback: detailedAnalysis.contentAlignment.feedback,
       positives: detailedAnalysis.contentAlignment.matchingSkills,
@@ -146,7 +148,7 @@ export default function ReviewPage() {
     },
     {
       key: 'experienceRelevance',
-      label: 'Experience Relevance',
+      label: t('reviewPage.categories.experienceRelevance'),
       score: detailedAnalysis.experienceRelevance.score,
       feedback: detailedAnalysis.experienceRelevance.feedback,
       positives: detailedAnalysis.experienceRelevance.relevantExperience,
@@ -154,20 +156,20 @@ export default function ReviewPage() {
     },
     {
       key: 'resumeStructure',
-      label: 'Resume Structure',
+      label: t('reviewPage.categories.resumeStructure'),
       score: detailedAnalysis.resumeStructure.score,
       feedback: detailedAnalysis.resumeStructure.feedback,
-      positives: ['Consistent section hierarchy and formatting'],
+      positives: [t('reviewPage.resumeStructurePositive')],
       gaps: detailedAnalysis.resumeStructure.sectionsToImprove.map(
         (s) => `${s.sectionName}: ${s.improvement}`
       ),
     },
     {
       key: 'atsCompatibility',
-      label: 'ATS Compatibility',
+      label: t('reviewPage.categories.atsCompatibility'),
       score: detailedAnalysis.atsCompatibility.score,
       feedback: detailedAnalysis.atsCompatibility.feedback,
-      positives: ['Machine-readable headings and single-column A4 layout'],
+      positives: [t('reviewPage.atsPositive')],
       gaps: detailedAnalysis.atsCompatibility.missingKeywords,
     },
   ];
@@ -191,18 +193,21 @@ export default function ReviewPage() {
             onClick={() => navigate('/')}
           >
             <ArrowLeft className="h-4 w-4" />
-            <span>Back to Editor</span>
+            <span>{t('reviewPage.backToEditor')}</span>
           </Button>
 
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-1.5 text-xs"
-            onClick={() => setNewReviewOpen(true)}
-          >
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            <span>New Analysis</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher />
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 text-xs"
+              onClick={() => setNewReviewOpen(true)}
+            >
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <span>{t('reviewPage.newAnalysis')}</span>
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -212,28 +217,28 @@ export default function ReviewPage() {
           <div className="space-y-1.5">
             <div className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-3 py-0.5 text-xs font-semibold text-primary">
               <Sparkles className="h-3.5 w-3.5" />
-              <span>AI CV Review & Readiness Dashboard</span>
+              <span>{t('reviewPage.badge')}</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight">
-              Comprehensive Resume & ATS Evaluation
+              {t('reviewPage.heading')}
             </h1>
             <p className="text-sm text-muted-foreground">
-              Review your ATS compatibility score, matched skills, prioritized recommendations, and interactive improvement checklist.
+              {t('reviewPage.subheading')}
             </p>
           </div>
         </div>
 
         {/* 3-Column Summary Metrics (`Overall Score`, `Job Fit`, `Candidate Level` + `estimatedImprovementTime`) */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-          <CircularGauge value={overallScore} label="Overall Score" />
+          <CircularGauge value={overallScore} label={t('reviewPage.overallScore')} />
           <CircularGauge
             value={jobFitPercentage}
-            label="Job Fit"
+            label={t('reviewPage.jobFit')}
             suffix="%"
           />
           <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-border bg-card p-5 text-center shadow-sm">
             <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Candidate Fit Level
+              {t('reviewPage.candidateFitLevel')}
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/15 px-4 py-1.5 text-base font-bold text-primary">
               <Target className="h-4 w-4" />
@@ -241,7 +246,7 @@ export default function ReviewPage() {
             </span>
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3.5 w-3.5" />
-              Est. Improvement Time: {estimatedImprovementTime}
+              {t('reviewPage.estTime', { time: estimatedImprovementTime })}
             </span>
           </div>
         </div>
@@ -250,16 +255,16 @@ export default function ReviewPage() {
         <Tabs defaultValue="overview" className="w-full space-y-6">
           <TabsList className="grid h-auto w-full grid-cols-2 p-1 sm:grid-cols-4">
             <TabsTrigger value="overview" className="py-2 text-xs">
-              Overview
+              {t('reviewPage.tabs.overview')}
             </TabsTrigger>
             <TabsTrigger value="detailed-analysis" className="py-2 text-xs">
-              Detailed Analysis
+              {t('reviewPage.tabs.detailedAnalysis')}
             </TabsTrigger>
             <TabsTrigger value="recommendations" className="py-2 text-xs">
-              Recommendations
+              {t('reviewPage.tabs.recommendations')}
             </TabsTrigger>
             <TabsTrigger value="improvements" className="py-2 text-xs">
-              Improvements
+              {t('reviewPage.tabs.improvements')}
             </TabsTrigger>
           </TabsList>
 
@@ -302,7 +307,7 @@ export default function ReviewPage() {
               <div className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-sm">
                 <h2 className="flex items-center gap-2 text-base font-bold">
                   <Award className="h-5 w-5 text-emerald-500" />
-                  <span>Core Strengths</span>
+                  <span>{t('reviewPage.coreStrengths')}</span>
                 </h2>
                 <div className="space-y-2">
                   {summary.strengths.map((item: string, idx: number) => (
@@ -320,7 +325,7 @@ export default function ReviewPage() {
               <div className="space-y-3 rounded-xl border border-border bg-card p-5 shadow-sm">
                 <h2 className="flex items-center gap-2 text-base font-bold">
                   <AlertTriangle className="h-5 w-5 text-amber-500" />
-                  <span>Key Weaknesses & Gaps</span>
+                  <span>{t('reviewPage.keyWeaknesses')}</span>
                 </h2>
                 <div className="space-y-2">
                   {summary.weaknesses.map((item: string, idx: number) => (
@@ -364,7 +369,7 @@ export default function ReviewPage() {
                   {cat.positives.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-                        Matched / Strengths
+                        {t('reviewPage.matchedStrengths')}
                       </p>
                       <ul className="space-y-1.5 text-xs">
                         {cat.positives.map((s: string, idx: number) => (
@@ -380,7 +385,7 @@ export default function ReviewPage() {
                   {cat.gaps.length > 0 && (
                     <div className="space-y-2">
                       <p className="text-xs font-semibold uppercase tracking-wider text-amber-600 dark:text-amber-400">
-                        Gaps / Missing Signals
+                        {t('reviewPage.gapsSignals')}
                       </p>
                       <ul className="space-y-1.5 text-xs">
                         {cat.gaps.map((imp: string, idx: number) => (
@@ -402,7 +407,7 @@ export default function ReviewPage() {
             <div className="space-y-4 rounded-xl border border-border bg-card p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-base font-bold">
-                  Prioritized Recommendations
+                  {t('reviewPage.prioritizedRecommendations')}
                 </h2>
                 <span className="inline-flex items-center gap-1 rounded bg-muted px-2.5 py-1 text-xs text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
@@ -418,7 +423,7 @@ export default function ReviewPage() {
                   >
                     <span>{rec}</span>
                     <span className="shrink-0 rounded bg-rose-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-rose-600 dark:text-rose-400">
-                      High Priority
+                      {t('reviewPage.highPriority')}
                     </span>
                   </div>
                 ))}
@@ -430,7 +435,7 @@ export default function ReviewPage() {
                     >
                       <span>{rec}</span>
                       <span className="shrink-0 rounded bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-600 dark:text-amber-400">
-                        Medium Priority
+                        {t('reviewPage.mediumPriority')}
                       </span>
                     </div>
                   )
@@ -442,14 +447,14 @@ export default function ReviewPage() {
                   >
                     <span>{rec}</span>
                     <span className="shrink-0 rounded bg-blue-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase text-blue-600 dark:text-blue-400">
-                      Low Priority
+                      {t('reviewPage.lowPriority')}
                     </span>
                   </div>
                 ))}
               </div>
 
               <div className="pt-4">
-                <h3 className="mb-3 text-sm font-bold">Next Steps</h3>
+                <h3 className="mb-3 text-sm font-bold">{t('reviewPage.nextSteps')}</h3>
                 <ol className="space-y-2">
                   {nextSteps.map((step: string, idx: number) => (
                     <li
@@ -473,10 +478,10 @@ export default function ReviewPage() {
               <div className="mb-4 flex items-center justify-between">
                 <div>
                   <h2 className="text-base font-bold">
-                    Section-by-Section Improvement Checklist
+                    {t('reviewPage.checklistTitle')}
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    Check off actionable improvements as you update your CV sections.
+                    {t('reviewPage.checklistDesc')}
                   </p>
                 </div>
               </div>

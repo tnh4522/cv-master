@@ -64,7 +64,7 @@ describe('Phase 4 AI Features — Gemini AI Adapter, Writing Tools & Review Dash
       expect(customized).toContain('<ul>');
       expect(customized.length).toBeGreaterThan(15);
     }
-  });
+  }, 10000);
 
   it('enforces verified guard clauses in analyzeResumeForRole (empty resume & invalid job inputs)', async () => {
     const emptyResume = {

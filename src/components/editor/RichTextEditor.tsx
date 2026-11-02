@@ -38,6 +38,7 @@ import {
   Skeleton,
 } from '@/components/ui/primitives';
 import { toast } from '@/components/ui/toast';
+import { useLanguage } from '@/context/LanguageContext';
 import {
   CUSTOMIZE_OPTIONS,
   type CustomizeOption,
@@ -70,11 +71,12 @@ const extensions = [
 ];
 
 function RegeneratingOverlay() {
+  const { t } = useLanguage();
   return (
     <div className="absolute inset-0 z-10 flex flex-col justify-center gap-2 bg-background/85 p-4 backdrop-blur-[1px]">
       <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
         <Sparkles className="h-3.5 w-3.5 animate-spin text-primary" />
-        <span>Refining content with AI...</span>
+        <span>{t('richText.refiningAi')}</span>
       </div>
       <Skeleton className="h-3.5 w-full" />
       <Skeleton className="h-3.5 w-11/12" />
@@ -95,6 +97,7 @@ function EditorToolbar({
   onUpdateContent,
 }: EditorToolbarProps) {
   const { editor } = useCurrentEditor();
+  const { t } = useLanguage();
   const [linkUrl, setLinkUrl] = useState('');
   const [linkOpen, setLinkOpen] = useState(false);
   const [customizeKey, setCustomizeKey] = useState<string>('');
@@ -131,14 +134,14 @@ function EditorToolbar({
       editor.commands.setContent(result);
       onUpdateContent(result);
       toast({
-        title: 'Writing improved',
-        description: 'Your content has been refined for stronger impact.',
+        title: t('richText.writingImprovedTitle'),
+        description: t('richText.writingImprovedDesc'),
       });
     } catch {
       toast({
         variant: 'destructive',
-        title: 'Failed to improve writing',
-        description: 'Please try again in a moment.',
+        title: t('richText.improveFailedTitle'),
+        description: t('richText.tryAgainDesc'),
       });
     } finally {
       setIsGenerating(false);
@@ -154,14 +157,14 @@ function EditorToolbar({
       editor.commands.setContent(result);
       onUpdateContent(result);
       toast({
-        title: 'Spelling & grammar checked',
-        description: 'Any detected typos and spacing issues were fixed.',
+        title: t('richText.typosCheckedTitle'),
+        description: t('richText.typosCheckedDesc'),
       });
     } catch {
       toast({
         variant: 'destructive',
-        title: 'Failed to check typos',
-        description: 'Please try again in a moment.',
+        title: t('richText.typosFailedTitle'),
+        description: t('richText.tryAgainDesc'),
       });
     } finally {
       setIsGenerating(false);
@@ -177,17 +180,16 @@ function EditorToolbar({
       const result = await customizeWriting(html, value as CustomizeOption);
       editor.commands.setContent(result);
       onUpdateContent(result);
-      const optionLabel =
-        CUSTOMIZE_OPTIONS.find((o) => o.value === value)?.label || 'Customized';
+      const optionLabel = t(`richText.presets.${value}`);
       toast({
-        title: `${optionLabel} applied`,
-        description: 'Your text has been updated.',
+        title: t('richText.customizeAppliedTitle', { label: optionLabel }),
+        description: t('richText.customizeAppliedDesc'),
       });
     } catch {
       toast({
         variant: 'destructive',
-        title: 'Customization failed',
-        description: 'Please try again.',
+        title: t('richText.customizeFailedTitle'),
+        description: t('richText.tryAgainDesc'),
       });
     } finally {
       setIsGenerating(false);
@@ -202,7 +204,7 @@ function EditorToolbar({
           variant={editor.isActive('bold') ? 'secondary' : 'ghost'}
           size="icon"
           className="h-7 w-7"
-          tooltipContent="Bold"
+          tooltipContent={t('richText.bold')}
           disabled={isGenerating}
           onClick={() => editor.chain().focus().toggleBold().run()}
         >
@@ -214,7 +216,7 @@ function EditorToolbar({
           variant={editor.isActive('italic') ? 'secondary' : 'ghost'}
           size="icon"
           className="h-7 w-7"
-          tooltipContent="Italic"
+          tooltipContent={t('richText.italic')}
           disabled={isGenerating}
           onClick={() => editor.chain().focus().toggleItalic().run()}
         >
@@ -228,7 +230,7 @@ function EditorToolbar({
           variant={editor.isActive('bulletList') ? 'secondary' : 'ghost'}
           size="icon"
           className="h-7 w-7"
-          tooltipContent="Bullet List"
+          tooltipContent={t('richText.bulletList')}
           disabled={isGenerating}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
         >
@@ -240,7 +242,7 @@ function EditorToolbar({
           variant={editor.isActive('orderedList') ? 'secondary' : 'ghost'}
           size="icon"
           className="h-7 w-7"
-          tooltipContent="Ordered List"
+          tooltipContent={t('richText.orderedList')}
           disabled={isGenerating}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
         >
@@ -264,7 +266,7 @@ function EditorToolbar({
               variant={editor.isActive('link') ? 'secondary' : 'ghost'}
               size="icon"
               className="h-7 w-7"
-              tooltipContent="Add Link"
+              tooltipContent={t('richText.addLink')}
               disabled={isGenerating}
             >
               <Link2 className="h-3.5 w-3.5" />
@@ -279,7 +281,7 @@ function EditorToolbar({
                 className="h-8 text-xs"
               />
               <Button type="submit" size="sm" className="h-8 px-2.5 text-xs">
-                Save
+                {t('common.save')}
               </Button>
             </form>
           </PopoverContent>
@@ -290,7 +292,7 @@ function EditorToolbar({
           variant="ghost"
           size="icon"
           className="h-7 w-7"
-          tooltipContent="Remove Link"
+          tooltipContent={t('richText.removeLink')}
           disabled={!editor.isActive('link') || isGenerating}
           onClick={() => editor.chain().focus().unsetLink().run()}
         >
@@ -303,7 +305,7 @@ function EditorToolbar({
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            tooltipContent="Undo"
+            tooltipContent={t('richText.undo')}
             disabled={!editor.can().chain().focus().undo().run() || isGenerating}
             onClick={() => editor.chain().focus().undo().run()}
           >
@@ -314,7 +316,7 @@ function EditorToolbar({
             variant="ghost"
             size="icon"
             className="h-7 w-7"
-            tooltipContent="Redo"
+            tooltipContent={t('richText.redo')}
             disabled={!editor.can().chain().focus().redo().run() || isGenerating}
             onClick={() => editor.chain().focus().redo().run()}
           >
@@ -334,7 +336,7 @@ function EditorToolbar({
           onClick={handleImproveWriting}
         >
           <Sparkles className="h-3 w-3 text-primary" />
-          <span>Improve Writing</span>
+          <span>{t('richText.improveWriting')}</span>
         </Button>
 
         <Button
@@ -346,7 +348,7 @@ function EditorToolbar({
           onClick={handleFixTypos}
         >
           <SpellCheck2 className="h-3 w-3 text-primary" />
-          <span>Fix Typos</span>
+          <span>{t('richText.fixTypos')}</span>
         </Button>
 
         <Select
@@ -354,14 +356,14 @@ function EditorToolbar({
           onValueChange={handleCustomize}
           disabled={isEmptyText || isGenerating}
         >
-          <SelectTrigger className="h-7 w-[140px] gap-1 px-2.5 text-xs">
+          <SelectTrigger className="h-7 w-[150px] gap-1 px-2.5 text-xs">
             <SlidersHorizontal className="h-3 w-3 shrink-0 text-muted-foreground" />
-            <SelectValue placeholder="Customize" />
+            <SelectValue placeholder={t('richText.customize')} />
           </SelectTrigger>
           <SelectContent>
             {CUSTOMIZE_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value} className="text-xs">
-                {opt.label}
+                {t(`richText.presets.${opt.value}`)}
               </SelectItem>
             ))}
           </SelectContent>

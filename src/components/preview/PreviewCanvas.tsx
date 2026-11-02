@@ -16,6 +16,7 @@ import {
 import { Button, Separator } from '@/components/ui/primitives';
 import { ResumeSheet } from '@/components/preview/ResumeSheet';
 import { ControlsSheet } from '@/components/controls/ControlsSheet';
+import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore } from '@/store/useResumeStore';
 import { useWindowSize } from '@/lib/utils';
 
@@ -32,6 +33,7 @@ function CanvasFloatingToolbar({
 }: CanvasFloatingToolbarProps) {
   const { zoomIn, zoomOut, resetTransform, centerView } = useControls();
   const { pdfSettings, updatePdfSettings } = usePdfSettingsStore();
+  const { t } = useLanguage();
 
   return (
     <div className="absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 items-center gap-1 rounded-full border border-border bg-background/95 px-2.5 py-1.5 shadow-lg backdrop-blur">
@@ -40,7 +42,7 @@ function CanvasFloatingToolbar({
         variant="ghost"
         size="icon"
         className="h-8 w-8 rounded-full"
-        tooltipContent="Zoom In"
+        tooltipContent={t('canvas.zoomIn')}
         onClick={() => zoomIn(0.15)}
       >
         <ZoomIn className="h-4 w-4" />
@@ -51,7 +53,7 @@ function CanvasFloatingToolbar({
         variant="ghost"
         size="icon"
         className="h-8 w-8 rounded-full"
-        tooltipContent="Zoom Out"
+        tooltipContent={t('canvas.zoomOut')}
         onClick={() => zoomOut(0.15)}
       >
         <ZoomOut className="h-4 w-4" />
@@ -62,7 +64,7 @@ function CanvasFloatingToolbar({
         variant="ghost"
         size="icon"
         className="h-8 w-8 rounded-full"
-        tooltipContent="Reset Zoom"
+        tooltipContent={t('canvas.resetZoom')}
         onClick={() => resetTransform()}
       >
         <RotateCcw className="h-4 w-4" />
@@ -73,7 +75,7 @@ function CanvasFloatingToolbar({
         variant="ghost"
         size="icon"
         className="h-8 w-8 rounded-full"
-        tooltipContent="Center View"
+        tooltipContent={t('canvas.centerView')}
         onClick={() => centerView()}
       >
         <Maximize2 className="h-4 w-4" />
@@ -88,8 +90,8 @@ function CanvasFloatingToolbar({
         className="h-8 w-8 rounded-full"
         tooltipContent={
           wheelMode === 'pan'
-            ? 'Scroll to pan (click for zoom)'
-            : 'Scroll to zoom (click for pan)'
+            ? t('canvas.scrollToPan')
+            : t('canvas.scrollToZoom')
         }
         onClick={onToggleWheelMode}
       >
@@ -103,8 +105,8 @@ function CanvasFloatingToolbar({
         className="h-8 w-8 rounded-full"
         tooltipContent={
           pdfSettings.pageBreakLine
-            ? 'Hide Page Break Line'
-            : 'Show Page Break Line'
+            ? t('canvas.hidePageBreak')
+            : t('canvas.showPageBreak')
         }
         onClick={() =>
           updatePdfSettings({ pageBreakLine: !pdfSettings.pageBreakLine })
@@ -123,7 +125,7 @@ function CanvasFloatingToolbar({
         onClick={onOpenControls}
       >
         <SlidersHorizontal className="h-3.5 w-3.5" />
-        <span>Controls</span>
+        <span>{t('canvas.controls')}</span>
       </Button>
     </div>
   );

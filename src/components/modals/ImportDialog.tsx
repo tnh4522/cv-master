@@ -24,6 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/primitives';
 import { toast } from '@/components/ui/toast';
+import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import { cvMasterJsonSchema } from '@/schemas/resumeSchemas';
 import {
@@ -46,6 +47,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
   const { setResumeData, setHiddenItemIds, updateSectionOrder } =
     useResumeStore();
   const { updatePdfSettings } = usePdfSettingsStore();
+  const { t } = useLanguage();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -151,8 +153,8 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       });
       setIsJsonValidated(true);
       toast({
-        title: 'JSON Validated',
-        description: 'File structure is valid. Click Import to load your CV.',
+        title: t('import.jsonValidatedTitle'),
+        description: t('import.jsonValidatedDesc'),
       });
     } catch (err) {
       setIsJsonValidated(false);
@@ -271,8 +273,8 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           updateSectionOrder(validatedJsonPayload.sectionOrder);
         }
         toast({
-          title: 'CV imported successfully',
-          description: 'Your CVMaster JSON backup has been restored.',
+          title: t('import.jsonImportedTitle'),
+          description: t('import.jsonImportedDesc'),
         });
         resetState();
         onOpenChange(false);
@@ -288,8 +290,8 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
         setResumeData(resumeData);
         updatePdfSettings(pdfSettings);
         toast({
-          title: 'PDF Resume Imported',
-          description: 'Structured resume fields have been populated from your PDF.',
+          title: t('import.pdfImportedTitle'),
+          description: t('import.pdfImportedDesc'),
         });
         resetState();
         onOpenChange(false);
@@ -302,8 +304,8 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
         setResumeData(resumeData);
         updatePdfSettings(pdfSettings);
         toast({
-          title: 'Image Resume Imported',
-          description: 'Resume fields have been extracted from your image.',
+          title: t('import.imageImportedTitle'),
+          description: t('import.imageImportedDesc'),
         });
         resetState();
         onOpenChange(false);
@@ -314,7 +316,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
       setErrorMessage(msg);
       toast({
         variant: 'destructive',
-        title: 'Import failed',
+        title: t('import.importFailedTitle'),
         description: msg,
       });
     } finally {
@@ -344,35 +346,35 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
     >
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Import CV</DialogTitle>
+          <DialogTitle>{t('import.title')}</DialogTitle>
           <DialogDescription>
-            Choose an import format to populate your CV from a PDF, Image, or CVMaster JSON file.
+            {t('import.description')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {/* Format Selector (`Select`) */}
           <div className="space-y-1.5">
-            <Label htmlFor="import-format-select">File Format</Label>
+            <Label htmlFor="import-format-select">{t('import.fileFormat')}</Label>
             <Select
               value={format}
               onValueChange={(val) => resetState(val as ImportFormatType)}
             >
               <SelectTrigger id="import-format-select">
-                <SelectValue placeholder="Select import format" />
+                <SelectValue placeholder={t('import.selectFormat')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="pdf">
-                  PDF - High accuracy (.pdf)
+                  {t('import.formatPdf')}
                 </SelectItem>
                 <SelectItem value="image">
-                  Image - Medium accuracy (.png, .jpg, .jpeg)
+                  {t('import.formatImage')}
                 </SelectItem>
                 <SelectItem value="cv-master-json">
-                  CV Master JSON - Fastest (.json)
+                  {t('import.formatCvMasterJson')}
                 </SelectItem>
                 <SelectItem value="json" disabled>
-                  Generic JSON (.json) (Coming soon)
+                  {t('import.formatGenericJson')}
                 </SelectItem>
               </SelectContent>
             </Select>
@@ -417,14 +419,12 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
 
               <div className="space-y-0.5">
                 <p className="text-sm font-medium">
-                  {selectedFile ? selectedFile.name : 'Click to choose a file'}
+                  {selectedFile ? selectedFile.name : t('import.clickToChoose')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {format === 'pdf' && 'Supported: .pdf (1KB – 20MB)'}
-                  {format === 'image' &&
-                    'Supported: .png, .jpg, .jpeg (10KB – 4MB)'}
-                  {format === 'cv-master-json' &&
-                    'Supported: CVMaster .json backup file'}
+                  {format === 'pdf' && t('import.supportedPdf')}
+                  {format === 'image' && t('import.supportedImage')}
+                  {format === 'cv-master-json' && t('import.supportedJson')}
                 </p>
               </div>
             </button>
@@ -434,14 +434,14 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           {format === 'pdf' && isExtractingPdf && (
             <div className="flex items-center gap-2 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span>Extracting text from PDF pages...</span>
+              <span>{t('import.extractingPdf')}</span>
             </div>
           )}
 
           {format === 'pdf' && pdfPreviewText && (
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold">
-                Extracted Text Preview
+                {t('import.extractedPreview')}
               </Label>
               <div
                 data-testid="pdf-extracted-preview"
@@ -456,7 +456,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           {format === 'cv-master-json' && isJsonValidated && (
             <div className="flex items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/10 p-3 text-xs text-emerald-700 dark:text-emerald-300">
               <CheckCircle2 className="h-4 w-4 shrink-0" />
-              <span>JSON file validated successfully. Ready to import!</span>
+              <span>{t('import.jsonValidatedBanner')}</span>
             </div>
           )}
 
@@ -482,7 +482,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
               onOpenChange(false);
             }}
           >
-            Cancel
+            {t('common.cancel')}
           </Button>
 
           {format === 'cv-master-json' && !isJsonValidated ? (
@@ -491,7 +491,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
               disabled={!selectedFile || isImporting}
               onClick={handleValidateJson}
             >
-              Validate
+              {t('common.validate')}
             </Button>
           ) : (
             <Button
@@ -503,12 +503,12 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
               {isImporting ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>Importing...</span>
+                  <span>{t('common.importing')}</span>
                 </>
               ) : (
                 <>
                   <Upload className="h-4 w-4" />
-                  <span>Import</span>
+                  <span>{t('common.import')}</span>
                 </>
               )}
             </Button>

@@ -2,12 +2,14 @@ import React from 'react';
 import { Button } from '@/components/ui/primitives';
 import { SectionIcon } from '@/components/icons/CustomIcons';
 import { ThemeSwitch } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 import type { SectionKey } from '@/types/resume';
 
 export function SectionNavRail() {
   const { sectionOrder, resumeData } = useResumeStore();
   const { sectionTitles } = resumeData;
+  const { t } = useLanguage();
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(`section-${id}`);
@@ -17,7 +19,7 @@ export function SectionNavRail() {
   };
 
   const navItems: { id: 'basics' | SectionKey; label: string }[] = [
-    { id: 'basics', label: 'Personal Information' },
+    { id: 'basics', label: t('nav.personalInfo') },
     ...sectionOrder.map((key) => ({
       id: key,
       label: sectionTitles[key] || key,
@@ -27,7 +29,7 @@ export function SectionNavRail() {
   return (
     <aside className="hidden lg:flex lg:w-14 lg:flex-col lg:items-center lg:justify-between lg:border-r lg:border-border lg:bg-background lg:py-4">
       <nav
-        aria-label="CV Sections Navigation"
+        aria-label={t('nav.sectionsAria')}
         className="flex flex-col items-center gap-1.5"
       >
         {navItems.map((item) => (

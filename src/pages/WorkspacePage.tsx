@@ -7,12 +7,14 @@ import { EditorPanel } from '@/components/editor/EditorPanel';
 import { PreviewCanvas } from '@/components/preview/PreviewCanvas';
 import { SectionDialogsHost } from '@/components/modals/SectionDialogs';
 import { ThemeSwitch } from '@/context/ThemeContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useWindowSize } from '@/lib/utils';
 
 export function WorkspacePage() {
   const { width } = useWindowSize();
   const isMobileOrTablet = (width ?? 1280) < 1024;
   const [mobileTab, setMobileTab] = useState<'content' | 'preview'>('content');
+  const { t } = useLanguage();
 
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-background text-foreground">
@@ -35,7 +37,7 @@ export function WorkspacePage() {
                 onClick={() => setMobileTab('content')}
               >
                 <FileEdit className="h-3.5 w-3.5" />
-                <span>Content</span>
+                <span>{t('workspace.content')}</span>
               </Button>
               <Button
                 type="button"
@@ -45,7 +47,7 @@ export function WorkspacePage() {
                 onClick={() => setMobileTab('preview')}
               >
                 <Eye className="h-3.5 w-3.5" />
-                <span>Preview</span>
+                <span>{t('workspace.preview')}</span>
               </Button>
             </div>
 

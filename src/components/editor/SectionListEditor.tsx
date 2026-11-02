@@ -23,6 +23,7 @@ import {
 import { SectionIcon } from '@/components/icons/CustomIcons';
 import { useResumeStore } from '@/store/useResumeStore';
 import { useDialog } from '@/context/DialogContext';
+import { useLanguage } from '@/context/LanguageContext';
 import type { ListSectionKey, SectionItemUnion } from '@/types/resume';
 
 interface SectionListEditorProps {
@@ -82,6 +83,7 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
     toggleHideItem,
   } = useResumeStore();
   const { openDialog } = useDialog();
+  const { t } = useLanguage();
 
   const items = (resumeData[sectionKey] || []) as SectionItemUnion[];
   const title = resumeData.sectionTitles[sectionKey] || sectionKey;
@@ -143,7 +145,7 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 opacity-60 group-hover:opacity-100"
-                tooltipContent="Rename section"
+                tooltipContent={t('common.renameSection')}
                 onClick={() => {
                   setTitleDraft(title);
                   setIsEditingTitle(true);
@@ -179,7 +181,7 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
                   {isHidden && (
                     <span className="inline-flex items-center gap-1 rounded bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                       <EyeOff className="h-2.5 w-2.5" />
-                      Hidden
+                      {t('common.hidden')}
                     </span>
                   )}
                 </div>
@@ -211,24 +213,24 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
                       onClick={() => openDialog(sectionKey, 'edit', item)}
                     >
                       <Pencil className="mr-2 h-3.5 w-3.5" />
-                      <span>Edit</span>
+                      <span>{t('common.edit')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => duplicateSectionItem(sectionKey, item.id)}
                     >
                       <Copy className="mr-2 h-3.5 w-3.5" />
-                      <span>Duplicate</span>
+                      <span>{t('common.duplicate')}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => toggleHideItem(item.id)}>
                       {isHidden ? (
                         <>
                           <Eye className="mr-2 h-3.5 w-3.5" />
-                          <span>Show in PDF</span>
+                          <span>{t('common.showInPdf')}</span>
                         </>
                       ) : (
                         <>
                           <EyeOff className="mr-2 h-3.5 w-3.5" />
-                          <span>Hide from PDF</span>
+                          <span>{t('common.hideFromPdf')}</span>
                         </>
                       )}
                     </DropdownMenuItem>
@@ -238,7 +240,7 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
                       onClick={() => setConfirmDeleteId(item.id)}
                     >
                       <Trash2 className="mr-2 h-3.5 w-3.5" />
-                      <span>Delete</span>
+                      <span>{t('common.delete')}</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -255,7 +257,7 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
         onClick={() => openDialog(sectionKey, 'create')}
       >
         <Plus className="h-3.5 w-3.5" />
-        <span>Add new item</span>
+        <span>{t('common.addNewItem')}</span>
       </Button>
 
       <DeleteConfirmDialog
@@ -263,8 +265,10 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
         onOpenChange={(open) => {
           if (!open) setConfirmDeleteId(null);
         }}
-        title="Are you sure you want to delete this item?"
-        description="This action cannot be undone. This item will be permanently removed from your CV."
+        title={t('common.deleteItemTitle')}
+        description={t('common.deleteItemDesc')}
+        cancelText={t('common.cancel')}
+        confirmText={t('common.delete')}
         onConfirm={() => {
           if (confirmDeleteId) handleConfirmDelete(confirmDeleteId);
         }}

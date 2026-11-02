@@ -25,6 +25,7 @@ import {
   CustomFieldIcon,
   SectionIcon,
 } from '@/components/icons/CustomIcons';
+import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 import { basicsFormSchema } from '@/schemas/resumeSchemas';
 import {
@@ -37,6 +38,7 @@ import type { CustomFieldItem } from '@/types/resume';
 
 export function BasicsEditor() {
   const { resumeData, updateBasics, resetPhotoSettings } = useResumeStore();
+  const { t } = useLanguage();
   const { basics } = resumeData;
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -67,9 +69,9 @@ export function BasicsEditor() {
       const issue = parsed.error.issues.find((i) => i.path.join('.') === path);
       let message = issue ? issue.message : '';
       if (issue && path === 'email') {
-        message = 'Use format: name@domain.com';
+        message = t('basics.emailError');
       } else if (issue && (path === 'linkedin' || path === 'website')) {
-        message = 'URL must start with: https://';
+        message = t('basics.urlError');
       }
       setFieldErrors((prev) => ({
         ...prev,
@@ -106,13 +108,13 @@ export function BasicsEditor() {
         },
       });
       toast({
-        title: 'Photo uploaded',
-        description: 'Your profile photo has been updated.',
+        title: t('basics.photoUploadedTitle'),
+        description: t('basics.photoUploadedDesc'),
       });
     } catch (err) {
       toast({
         variant: 'destructive',
-        title: 'Failed to upload photo',
+        title: t('basics.photoUploadFailedTitle'),
         description: err instanceof Error ? err.message : 'Please try again.',
       });
     } finally {
@@ -126,7 +128,7 @@ export function BasicsEditor() {
       photo: { ...basics.photo, url: rawUrl },
     });
     if (rawUrl.trim() && !isValidPhotoUrl(rawUrl)) {
-      setPhotoUrlError('URL must start with: https://');
+      setPhotoUrlError(t('basics.urlError'));
     } else {
       setPhotoUrlError('');
     }
@@ -169,7 +171,7 @@ export function BasicsEditor() {
     <section id="section-basics" className="space-y-5">
       <div className="flex items-center gap-2.5">
         <SectionIcon section="basics" className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-bold tracking-tight">Personal Information</h2>
+        <h2 className="text-lg font-bold tracking-tight">{t('basics.title')}</h2>
       </div>
 
       {/* Profile Photo Controls (Du) */}
@@ -187,7 +189,7 @@ export function BasicsEditor() {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploadingPhoto}
-            title="Click to upload photo"
+            title={t('basics.clickToUploadPhoto')}
             className="relative flex aspect-square w-24 shrink-0 cursor-pointer flex-col items-center justify-center overflow-hidden rounded-lg border-2 border-dashed border-border bg-muted/40 transition-colors hover:border-primary/60 hover:bg-muted/70"
           >
             {basics.photo.url ? (
@@ -205,7 +207,7 @@ export function BasicsEditor() {
               <div className="flex flex-col items-center gap-1 p-2 text-center text-muted-foreground">
                 <Upload className="h-4 w-4" />
                 <span className="text-[11px] leading-tight">
-                  {isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}
+                  {isUploadingPhoto ? t('basics.uploading') : t('basics.uploadPhoto')}
                 </span>
               </div>
             )}
@@ -222,7 +224,7 @@ export function BasicsEditor() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 <Upload className="h-3.5 w-3.5" />
-                <span>{isUploadingPhoto ? 'Uploading...' : 'Upload Photo'}</span>
+                <span>{isUploadingPhoto ? t('basics.uploading') : t('basics.uploadPhoto')}</span>
               </Button>
 
               {basics.photo.url && (
@@ -234,8 +236,8 @@ export function BasicsEditor() {
                     className="h-8 gap-1.5 text-xs"
                     tooltipContent={
                       basics.photo.visible
-                        ? 'Hide photo from CV'
-                        : 'Show photo in CV'
+                        ? t('basics.hidePhotoTooltip')
+                        : t('basics.showPhotoTooltip')
                     }
                     onClick={() =>
                       updateBasics({
@@ -249,12 +251,12 @@ export function BasicsEditor() {
                     {basics.photo.visible ? (
                       <>
                         <EyeOff className="h-3.5 w-3.5" />
-                        <span>Hide</span>
+                        <span>{t('basics.hidePhoto')}</span>
                       </>
                     ) : (
                       <>
                         <Eye className="h-3.5 w-3.5" />
-                        <span>Show</span>
+                        <span>{t('basics.showPhoto')}</span>
                       </>
                     )}
                   </Button>
@@ -264,11 +266,11 @@ export function BasicsEditor() {
                     variant="outline"
                     size="sm"
                     className="h-8 gap-1.5 text-xs text-destructive hover:text-destructive"
-                    tooltipContent="Remove photo"
+                    tooltipContent={t('basics.removePhotoTooltip')}
                     onClick={() => setConfirmRemovePhotoOpen(true)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
-                    <span>Remove</span>
+                    <span>{t('basics.removePhoto')}</span>
                   </Button>
                 </>
               )}
@@ -276,7 +278,7 @@ export function BasicsEditor() {
 
             <div className="space-y-1">
               <Label htmlFor="basics-photo-url" className="text-xs">
-                Photo URL
+                {t('basics.photoUrl')}
               </Label>
               <Input
                 id="basics-photo-url"
@@ -299,14 +301,14 @@ export function BasicsEditor() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <Label htmlFor="photo-size-input" className="text-xs">
-                  Size ({basics.photo.size}px)
+                  {t('basics.size', { size: basics.photo.size })}
                 </Label>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
-                  tooltipContent="Reset size (100px)"
+                  tooltipContent={t('basics.resetSizeTooltip')}
                   onClick={() =>
                     updateBasics({
                       photo: {
@@ -360,14 +362,14 @@ export function BasicsEditor() {
             <div className="space-y-2">
               <div className="flex items-center justify-between text-xs">
                 <Label htmlFor="photo-radius-input" className="text-xs">
-                  Border radius ({basics.photo.borderRadius}px)
+                  {t('basics.borderRadius', { radius: basics.photo.borderRadius })}
                 </Label>
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
-                  tooltipContent="Reset border radius (4px)"
+                  tooltipContent={t('basics.resetRadiusTooltip')}
                   onClick={() =>
                     updateBasics({
                       photo: {
@@ -424,8 +426,10 @@ export function BasicsEditor() {
       <DeleteConfirmDialog
         open={confirmRemovePhotoOpen}
         onOpenChange={setConfirmRemovePhotoOpen}
-        title="Remove profile photo?"
-        description="This will remove the current photo and reset photo styling settings."
+        title={t('basics.removePhotoConfirmTitle')}
+        description={t('basics.removePhotoConfirmDesc')}
+        cancelText={t('common.cancel')}
+        confirmText={t('common.delete')}
         onConfirm={() => {
           resetPhotoSettings();
           setPhotoUrlError('');
@@ -436,7 +440,7 @@ export function BasicsEditor() {
       {/* Main Personal Info Fields */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="basics-name">Full Name</Label>
+          <Label htmlFor="basics-name">{t('basics.fullName')}</Label>
           <Input
             id="basics-name"
             placeholder="John Doe"
@@ -454,7 +458,7 @@ export function BasicsEditor() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="basics-title">Job Title / Headline</Label>
+          <Label htmlFor="basics-title">{t('basics.jobTitle')}</Label>
           <Input
             id="basics-title"
             placeholder="Software Developer"
@@ -472,7 +476,7 @@ export function BasicsEditor() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="basics-email">Email</Label>
+          <Label htmlFor="basics-email">{t('basics.email')}</Label>
           <Input
             id="basics-email"
             type="email"
@@ -491,7 +495,7 @@ export function BasicsEditor() {
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="basics-linkedin">LinkedIn URL</Label>
+          <Label htmlFor="basics-linkedin">{t('basics.linkedin')}</Label>
           <Input
             id="basics-linkedin"
             placeholder="https://linkedin.com/in/johndoe"
@@ -509,7 +513,7 @@ export function BasicsEditor() {
         </div>
 
         <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="basics-website">Website / Portfolio URL</Label>
+          <Label htmlFor="basics-website">{t('basics.portfolio')}</Label>
           <Input
             id="basics-website"
             placeholder="https://johndoe.com"
@@ -529,13 +533,13 @@ export function BasicsEditor() {
         {/* Phone with Break After switch */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="basics-phone">Phone</Label>
+            <Label htmlFor="basics-phone">{t('basics.phone')}</Label>
             <div className="flex items-center gap-1.5">
               <Label
                 htmlFor="phone-break-after"
                 className="cursor-pointer text-xs font-normal text-muted-foreground"
               >
-                Break after
+                {t('common.breakAfter')}
               </Label>
               <Switch
                 id="phone-break-after"
@@ -564,13 +568,13 @@ export function BasicsEditor() {
         {/* Location with Break After switch */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="basics-location">Location</Label>
+            <Label htmlFor="basics-location">{t('basics.location')}</Label>
             <div className="flex items-center gap-1.5">
               <Label
                 htmlFor="location-break-after"
                 className="cursor-pointer text-xs font-normal text-muted-foreground"
               >
-                Break after
+                {t('common.breakAfter')}
               </Label>
               <Switch
                 id="location-break-after"
@@ -601,7 +605,7 @@ export function BasicsEditor() {
       {basics.customFields.length > 0 && (
         <div className="space-y-3 pt-1">
           <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            Custom Fields
+            {t('basics.customFields')}
           </Label>
           <div className="space-y-2.5">
             {basics.customFields.map((field) => (
@@ -618,7 +622,7 @@ export function BasicsEditor() {
                         variant="outline"
                         size="icon"
                         className="h-9 w-9 shrink-0"
-                        tooltipContent="Choose icon"
+                        tooltipContent={t('basics.chooseIcon')}
                       >
                         <CustomFieldIcon
                           iconName={field.iconName}
@@ -651,7 +655,7 @@ export function BasicsEditor() {
                   </Popover>
 
                   <Input
-                    placeholder="Label (e.g. GitHub)"
+                    placeholder={t('basics.customLabelPlaceholder')}
                     value={field.name}
                     onChange={(e) =>
                       handleUpdateCustomField(field.id, {
@@ -662,7 +666,7 @@ export function BasicsEditor() {
                   />
 
                   <Input
-                    placeholder="Value or URL"
+                    placeholder={t('basics.customValuePlaceholder')}
                     value={field.value}
                     onChange={(e) =>
                       handleUpdateCustomField(field.id, {
@@ -679,7 +683,7 @@ export function BasicsEditor() {
                       htmlFor={`cf-break-${field.id}`}
                       className="cursor-pointer whitespace-nowrap text-xs font-normal text-muted-foreground"
                     >
-                      Break after
+                      {t('common.breakAfter')}
                     </Label>
                     <Switch
                       id={`cf-break-${field.id}`}
@@ -697,7 +701,7 @@ export function BasicsEditor() {
                     variant="ghost"
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive"
-                    tooltipContent="Remove custom field"
+                    tooltipContent={t('basics.removeCustomField')}
                     onClick={() => handleRemoveCustomField(field.id)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -718,7 +722,7 @@ export function BasicsEditor() {
           onClick={handleAddCustomField}
         >
           <Plus className="h-3.5 w-3.5" />
-          <span>Add Custom Field</span>
+          <span>{t('basics.addCustomField')}</span>
         </Button>
       </div>
 

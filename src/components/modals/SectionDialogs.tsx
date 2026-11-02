@@ -42,6 +42,7 @@ import {
 } from '@/components/ui/form';
 import { RichTextEditor } from '@/components/editor/RichTextEditor';
 import { useDialog } from '@/context/DialogContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 import {
   awardItemSchema,
@@ -146,8 +147,10 @@ interface KeywordListInputProps {
 function KeywordListInput({
   keywords,
   onChange,
-  placeholder = 'Type a keyword and press Enter or comma',
+  placeholder,
 }: KeywordListInputProps) {
+  const { t } = useLanguage();
+  const resolvedPlaceholder = placeholder || t('dialogs.keywordPlaceholder');
   const [inputValue, setInputValue] = useState('');
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
@@ -191,7 +194,7 @@ function KeywordListInput({
     <div className="space-y-2.5">
       <div className="flex gap-2">
         <Input
-          placeholder={placeholder}
+          placeholder={resolvedPlaceholder}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -201,7 +204,7 @@ function KeywordListInput({
           variant="secondary"
           onClick={() => addKeyword(inputValue)}
         >
-          Add
+          {t('common.add')}
         </Button>
       </div>
 
@@ -239,6 +242,7 @@ function KeywordListInput({
 function ExperienceDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'experience' && mode !== null;
 
   const form = useForm<ExperienceFormValues>({
@@ -297,7 +301,9 @@ function ExperienceDialog() {
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Work Experience' : 'Add Work Experience'}
+            {mode === 'edit'
+              ? t('dialogs.experience.editTitle')
+              : t('dialogs.experience.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -308,7 +314,7 @@ function ExperienceDialog() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Company</FormLabel>
+                    <FormLabel>{t('dialogs.experience.company')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Acme Corp" {...field} />
                     </FormControl>
@@ -321,7 +327,7 @@ function ExperienceDialog() {
                 name="position"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Position</FormLabel>
+                    <FormLabel>{t('dialogs.experience.position')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Senior Software Engineer" {...field} />
                     </FormControl>
@@ -334,7 +340,7 @@ function ExperienceDialog() {
                 name="dateRange"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date or Date Range</FormLabel>
+                    <FormLabel>{t('common.dateOrRange')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Jan 2022 - Present" {...field} />
                     </FormControl>
@@ -347,7 +353,7 @@ function ExperienceDialog() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t('common.location')}</FormLabel>
                     <FormControl>
                       <Input placeholder="San Francisco, CA" {...field} />
                     </FormControl>
@@ -360,14 +366,18 @@ function ExperienceDialog() {
                 name="employmentType"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Employment Type</FormLabel>
+                    <FormLabel>{t('dialogs.experience.employmentType')}</FormLabel>
                     <Select
                       value={field.value || ''}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select employment type" />
+                          <SelectValue
+                            placeholder={t(
+                              'dialogs.experience.selectEmploymentType'
+                            )}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -381,7 +391,7 @@ function ExperienceDialog() {
                           )}
                         {EMPLOYMENT_TYPES.map((type) => (
                           <SelectItem key={type} value={type}>
-                            {type}
+                            {t(`dialogs.employmentTypes.${type}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -395,7 +405,7 @@ function ExperienceDialog() {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t('common.website')}</FormLabel>
                     <FormControl>
                       <Input placeholder="https://company.com" {...field} />
                     </FormControl>
@@ -410,7 +420,7 @@ function ExperienceDialog() {
               name="summary"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Summary</FormLabel>
+                  <FormLabel>{t('common.summary')}</FormLabel>
                   <FormControl>
                     <RichTextEditor
                       content={field.value || ''}
@@ -424,10 +434,10 @@ function ExperienceDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -443,6 +453,7 @@ function ExperienceDialog() {
 function ProjectsDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'projects' && mode !== null;
 
   const form = useForm<ProjectFormValues>({
@@ -506,7 +517,9 @@ function ProjectsDialog() {
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Project' : 'Add Project'}
+            {mode === 'edit'
+              ? t('dialogs.projects.editTitle')
+              : t('dialogs.projects.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -517,7 +530,7 @@ function ProjectsDialog() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Project Name</FormLabel>
+                    <FormLabel>{t('dialogs.projects.projectName')}</FormLabel>
                     <FormControl>
                       <Input placeholder="CloudScale Analytics" {...field} />
                     </FormControl>
@@ -530,7 +543,7 @@ function ProjectsDialog() {
                 name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Description</FormLabel>
+                    <FormLabel>{t('common.description')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="Open-source telemetry engine"
@@ -546,7 +559,7 @@ function ProjectsDialog() {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date or Date Range</FormLabel>
+                    <FormLabel>{t('common.dateOrRange')}</FormLabel>
                     <FormControl>
                       <Input placeholder="2023" {...field} />
                     </FormControl>
@@ -559,7 +572,7 @@ function ProjectsDialog() {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t('common.website')}</FormLabel>
                     <FormControl>
                       <Input placeholder="https://github.com/..." {...field} />
                     </FormControl>
@@ -574,7 +587,7 @@ function ProjectsDialog() {
               name="keywords"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Keywords / Technologies</FormLabel>
+                  <FormLabel>{t('dialogs.projects.keywords')}</FormLabel>
                   <FormControl>
                     <KeywordListInput
                       keywords={field.value || []}
@@ -591,7 +604,7 @@ function ProjectsDialog() {
               name="summary"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Summary</FormLabel>
+                  <FormLabel>{t('common.summary')}</FormLabel>
                   <FormControl>
                     <RichTextEditor
                       content={field.value || ''}
@@ -605,10 +618,10 @@ function ProjectsDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -624,6 +637,7 @@ function ProjectsDialog() {
 function EducationDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'education' && mode !== null;
 
   const form = useForm<EducationFormValues>({
@@ -679,7 +693,9 @@ function EducationDialog() {
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Education' : 'Add Education'}
+            {mode === 'edit'
+              ? t('dialogs.education.editTitle')
+              : t('dialogs.education.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -690,7 +706,7 @@ function EducationDialog() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>School</FormLabel>
+                    <FormLabel>{t('dialogs.education.school')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="University of California, Berkeley"
@@ -706,7 +722,7 @@ function EducationDialog() {
                 name="degree"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Degree</FormLabel>
+                    <FormLabel>{t('dialogs.education.degree')}</FormLabel>
                     <FormControl>
                       <Input placeholder="B.S." {...field} />
                     </FormControl>
@@ -719,7 +735,7 @@ function EducationDialog() {
                 name="studyField"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Field of Study</FormLabel>
+                    <FormLabel>{t('dialogs.education.studyField')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Computer Science" {...field} />
                     </FormControl>
@@ -732,7 +748,7 @@ function EducationDialog() {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date or Date Range</FormLabel>
+                    <FormLabel>{t('common.dateOrRange')}</FormLabel>
                     <FormControl>
                       <Input placeholder="2015 - 2019" {...field} />
                     </FormControl>
@@ -745,7 +761,7 @@ function EducationDialog() {
                 name="website"
                 render={({ field }) => (
                   <FormItem className="sm:col-span-2">
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t('common.website')}</FormLabel>
                     <FormControl>
                       <Input placeholder="https://berkeley.edu" {...field} />
                     </FormControl>
@@ -760,7 +776,7 @@ function EducationDialog() {
               name="summary"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Summary</FormLabel>
+                  <FormLabel>{t('common.summary')}</FormLabel>
                   <FormControl>
                     <RichTextEditor
                       content={field.value || ''}
@@ -774,10 +790,10 @@ function EducationDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -793,6 +809,7 @@ function EducationDialog() {
 function SkillsDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'skills' && mode !== null;
 
   const form = useForm<SkillFormValues>({
@@ -840,7 +857,9 @@ function SkillsDialog() {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Skill Category' : 'Add Skill Category'}
+            {mode === 'edit'
+              ? t('dialogs.skills.editTitle')
+              : t('dialogs.skills.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -850,7 +869,7 @@ function SkillsDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Category Name</FormLabel>
+                  <FormLabel>{t('dialogs.skills.categoryName')}</FormLabel>
                   <FormControl>
                     <Input placeholder="Frontend Development" {...field} />
                   </FormControl>
@@ -864,12 +883,12 @@ function SkillsDialog() {
               name="keywords"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Keywords</FormLabel>
+                  <FormLabel>{t('dialogs.skills.keywords')}</FormLabel>
                   <FormControl>
                     <KeywordListInput
                       keywords={field.value || []}
                       onChange={field.onChange}
-                      placeholder="e.g. React, TypeScript (press Enter)"
+                      placeholder={t('dialogs.skillKeywordPlaceholder')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -879,10 +898,10 @@ function SkillsDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -898,6 +917,7 @@ function SkillsDialog() {
 function LanguagesDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'languages' && mode !== null;
 
   const form = useForm<LanguageFormValues>({
@@ -981,7 +1001,9 @@ function LanguagesDialog() {
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Language' : 'Add Language'}
+            {mode === 'edit'
+              ? t('dialogs.languages.editTitle')
+              : t('dialogs.languages.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -992,7 +1014,7 @@ function LanguagesDialog() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Language</FormLabel>
+                    <FormLabel>{t('dialogs.languages.language')}</FormLabel>
                     <FormControl>
                       <Input placeholder="English, Japanese..." {...field} />
                     </FormControl>
@@ -1006,14 +1028,18 @@ function LanguagesDialog() {
                 name="level"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Proficiency Level</FormLabel>
+                    <FormLabel>{t('dialogs.languages.proficiency')}</FormLabel>
                     <Select
                       value={field.value || ''}
                       onValueChange={field.onChange}
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select proficiency level" />
+                          <SelectValue
+                            placeholder={t(
+                              'dialogs.languages.selectProficiency'
+                            )}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -1027,7 +1053,7 @@ function LanguagesDialog() {
                           )}
                         {LANGUAGE_LEVELS.map((lvl) => (
                           <SelectItem key={lvl} value={lvl}>
-                            {lvl}
+                            {t(`dialogs.languageLevels.${lvl}`)}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -1042,7 +1068,7 @@ function LanguagesDialog() {
                 name="certificate"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Certificate (Optional)</FormLabel>
+                    <FormLabel>{t('dialogs.languages.certificate')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="IELTS Academic, TOEIC, JLPT..."
@@ -1059,7 +1085,7 @@ function LanguagesDialog() {
                 name="score"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Score / Grade (Optional)</FormLabel>
+                    <FormLabel>{t('dialogs.languages.score')}</FormLabel>
                     <FormControl>
                       <Input placeholder="8.0 / 9.0, 950, N2..." {...field} />
                     </FormControl>
@@ -1073,7 +1099,7 @@ function LanguagesDialog() {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Issue Date / Validity (Optional)</FormLabel>
+                    <FormLabel>{t('dialogs.languages.issueDate')}</FormLabel>
                     <FormControl>
                       <Input placeholder="2024 or 2023 - 2025" {...field} />
                     </FormControl>
@@ -1087,7 +1113,7 @@ function LanguagesDialog() {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Credential URL (Optional)</FormLabel>
+                    <FormLabel>{t('dialogs.languages.credentialUrl')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://credentials.example.com"
@@ -1102,7 +1128,7 @@ function LanguagesDialog() {
 
             <div className="space-y-2 rounded-md border border-border/70 bg-muted/20 p-3">
               <p className="text-xs font-semibold text-muted-foreground">
-                4 Skills Assessment (Optional)
+                {t('dialogs.languages.fourSkillsTitle')}
               </p>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <FormField
@@ -1110,7 +1136,9 @@ function LanguagesDialog() {
                   name="listening"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Listening</FormLabel>
+                      <FormLabel className="text-xs">
+                        {t('dialogs.languages.listening')}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="e.g. 8.5 / Fluent"
@@ -1128,7 +1156,9 @@ function LanguagesDialog() {
                   name="speaking"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Speaking</FormLabel>
+                      <FormLabel className="text-xs">
+                        {t('dialogs.languages.speaking')}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="e.g. 7.5 / Fluent"
@@ -1146,7 +1176,9 @@ function LanguagesDialog() {
                   name="reading"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Reading</FormLabel>
+                      <FormLabel className="text-xs">
+                        {t('dialogs.languages.reading')}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="e.g. 8.5 / Advanced"
@@ -1164,7 +1196,9 @@ function LanguagesDialog() {
                   name="writing"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-xs">Writing</FormLabel>
+                      <FormLabel className="text-xs">
+                        {t('dialogs.languages.writing')}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           placeholder="e.g. 7.5 / Advanced"
@@ -1184,7 +1218,7 @@ function LanguagesDialog() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description / Notes (Optional)</FormLabel>
+                  <FormLabel>{t('dialogs.languages.notes')}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="e.g. Full professional proficiency in technical presentations and cross-team collaboration"
@@ -1198,10 +1232,10 @@ function LanguagesDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -1217,6 +1251,7 @@ function LanguagesDialog() {
 function CertificationsDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'certifications' && mode !== null;
 
   const form = useForm<CertificationFormValues>({
@@ -1276,7 +1311,9 @@ function CertificationsDialog() {
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Certification' : 'Add Certification'}
+            {mode === 'edit'
+              ? t('dialogs.certifications.editTitle')
+              : t('dialogs.certifications.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -1287,7 +1324,7 @@ function CertificationsDialog() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Certification Name</FormLabel>
+                    <FormLabel>{t('dialogs.certifications.certName')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="AWS Certified Solutions Architect"
@@ -1303,7 +1340,7 @@ function CertificationsDialog() {
                 name="issuer"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Issuer</FormLabel>
+                    <FormLabel>{t('common.issuer')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Amazon Web Services" {...field} />
                     </FormControl>
@@ -1316,7 +1353,7 @@ function CertificationsDialog() {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>{t('common.date')}</FormLabel>
                     <FormControl>
                       <Input placeholder="2023" {...field} />
                     </FormControl>
@@ -1329,7 +1366,9 @@ function CertificationsDialog() {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Credential URL</FormLabel>
+                    <FormLabel>
+                      {t('dialogs.certifications.credentialUrl')}
+                    </FormLabel>
                     <FormControl>
                       <Input
                         placeholder="https://aws.amazon.com/verification"
@@ -1347,7 +1386,7 @@ function CertificationsDialog() {
               name="summary"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Summary</FormLabel>
+                  <FormLabel>{t('common.summary')}</FormLabel>
                   <FormControl>
                     <RichTextEditor
                       content={field.value || ''}
@@ -1361,10 +1400,10 @@ function CertificationsDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -1380,6 +1419,7 @@ function CertificationsDialog() {
 function AwardsDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'awards' && mode !== null;
 
   const form = useForm<AwardFormValues>({
@@ -1432,7 +1472,9 @@ function AwardsDialog() {
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Award' : 'Add Award'}
+            {mode === 'edit'
+              ? t('dialogs.awards.editTitle')
+              : t('dialogs.awards.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -1443,7 +1485,7 @@ function AwardsDialog() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Title</FormLabel>
+                    <FormLabel>{t('dialogs.awards.awardTitle')}</FormLabel>
                     <FormControl>
                       <Input
                         placeholder="1st Place Global Hackathon"
@@ -1459,7 +1501,7 @@ function AwardsDialog() {
                 name="issuer"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Issuer</FormLabel>
+                    <FormLabel>{t('common.issuer')}</FormLabel>
                     <FormControl>
                       <Input placeholder="TechCrunch Disrupt" {...field} />
                     </FormControl>
@@ -1472,7 +1514,7 @@ function AwardsDialog() {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel>{t('common.date')}</FormLabel>
                     <FormControl>
                       <Input placeholder="2022" {...field} />
                     </FormControl>
@@ -1485,7 +1527,7 @@ function AwardsDialog() {
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t('common.website')}</FormLabel>
                     <FormControl>
                       <Input placeholder="https://example.com" {...field} />
                     </FormControl>
@@ -1500,7 +1542,7 @@ function AwardsDialog() {
               name="summary"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Summary</FormLabel>
+                  <FormLabel>{t('common.summary')}</FormLabel>
                   <FormControl>
                     <RichTextEditor
                       content={field.value || ''}
@@ -1514,10 +1556,10 @@ function AwardsDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -1533,6 +1575,7 @@ function AwardsDialog() {
 function VolunteeringDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'volunteering' && mode !== null;
 
   const form = useForm<VolunteeringFormValues>({
@@ -1585,7 +1628,9 @@ function VolunteeringDialog() {
       <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Volunteering' : 'Add Volunteering'}
+            {mode === 'edit'
+              ? t('dialogs.volunteering.editTitle')
+              : t('dialogs.volunteering.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -1596,7 +1641,9 @@ function VolunteeringDialog() {
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Organization</FormLabel>
+                    <FormLabel>
+                      {t('dialogs.volunteering.organization')}
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="Code for America" {...field} />
                     </FormControl>
@@ -1609,7 +1656,7 @@ function VolunteeringDialog() {
                 name="position"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Position / Role</FormLabel>
+                    <FormLabel>{t('dialogs.volunteering.role')}</FormLabel>
                     <FormControl>
                       <Input placeholder="Technical Mentor" {...field} />
                     </FormControl>
@@ -1622,7 +1669,7 @@ function VolunteeringDialog() {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Date or Date Range</FormLabel>
+                    <FormLabel>{t('common.dateOrRange')}</FormLabel>
                     <FormControl>
                       <Input placeholder="2020 - Present" {...field} />
                     </FormControl>
@@ -1635,7 +1682,7 @@ function VolunteeringDialog() {
                 name="location"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel>{t('common.location')}</FormLabel>
                     <FormControl>
                       <Input placeholder="San Francisco, CA" {...field} />
                     </FormControl>
@@ -1650,7 +1697,7 @@ function VolunteeringDialog() {
               name="summary"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Summary</FormLabel>
+                  <FormLabel>{t('common.summary')}</FormLabel>
                   <FormControl>
                     <RichTextEditor
                       content={field.value || ''}
@@ -1664,10 +1711,10 @@ function VolunteeringDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>
@@ -1683,6 +1730,7 @@ function VolunteeringDialog() {
 function InterestsDialog() {
   const { activeSection, mode, activeItem, closeDialog } = useDialog();
   const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
   const open = activeSection === 'interests' && mode !== null;
 
   const form = useForm<InterestFormValues>({
@@ -1734,7 +1782,9 @@ function InterestsDialog() {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle>
-            {mode === 'edit' ? 'Edit Interest' : 'Add Interest'}
+            {mode === 'edit'
+              ? t('dialogs.interests.editTitle')
+              : t('dialogs.interests.addTitle')}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
@@ -1744,7 +1794,7 @@ function InterestsDialog() {
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Hobby / Interest</FormLabel>
+                  <FormLabel>{t('dialogs.interests.hobby')}</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Photography, Open Source, Running..."
@@ -1761,7 +1811,9 @@ function InterestsDialog() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
+                  <FormLabel>
+                    {t('dialogs.interests.descriptionOptional')}
+                  </FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Landscape & street photography, 3x half-marathon finisher"
@@ -1778,12 +1830,14 @@ function InterestsDialog() {
               name="keywords"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Keywords / Tags (Optional)</FormLabel>
+                  <FormLabel>
+                    {t('dialogs.interests.keywordsOptional')}
+                  </FormLabel>
                   <FormControl>
                     <KeywordListInput
                       keywords={field.value || []}
                       onChange={field.onChange}
-                      placeholder="e.g. 35mm Film, Lightroom (press Enter)"
+                      placeholder={t('dialogs.interestKeywordPlaceholder')}
                     />
                   </FormControl>
                   <FormMessage />
@@ -1793,10 +1847,10 @@ function InterestsDialog() {
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={closeDialog}>
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button type="submit">
-                {mode === 'edit' ? 'Save changes' : 'Create'}
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
               </Button>
             </DialogFooter>
           </form>

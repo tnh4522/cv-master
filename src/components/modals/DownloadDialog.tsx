@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/primitives';
 import { toast } from '@/components/ui/toast';
 import { ResumeSheet } from '@/components/preview/ResumeSheet';
+import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import {
   exportResumeToPdf,
@@ -31,6 +32,7 @@ type ExportStatus = 'idle' | 'generating' | 'completed';
 export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
   const { resumeData, sectionOrder, hiddenItemIds } = useResumeStore();
   const { pdfSettings } = usePdfSettingsStore();
+  const { t } = useLanguage();
   const printSheetRef = useRef<HTMLDivElement | null>(null);
   const [exportStatus, setExportStatus] = useState<ExportStatus>('idle');
 
@@ -54,15 +56,15 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
       toast({
-        title: 'JSON exported',
-        description: 'Your CV data backup (.json) has been downloaded.',
+        title: t('download.jsonExportedTitle'),
+        description: t('download.jsonExportedDesc'),
       });
       onOpenChange(false);
     } catch {
       toast({
         variant: 'destructive',
-        title: 'Export failed',
-        description: 'Could not export JSON file.',
+        title: t('download.exportFailedTitle'),
+        description: t('download.exportFailedDesc'),
       });
     }
   };
@@ -73,7 +75,7 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
     if (!check.valid) {
       toast({
         variant: 'destructive',
-        title: 'Incomplete Personal Info',
+        title: t('download.incompleteInfoTitle'),
         description: check.error,
       });
       return;
@@ -86,8 +88,8 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
     if (!sheetEl) {
       toast({
         variant: 'destructive',
-        title: 'Preview not ready',
-        description: 'Could not locate the resume sheet to export.',
+        title: t('download.previewNotReadyTitle'),
+        description: t('download.previewNotReadyDesc'),
       });
       return;
     }
@@ -102,8 +104,8 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
       });
       setExportStatus('completed');
       toast({
-        title: 'PDF downloaded!',
-        description: `Saved as ${fileName}`,
+        title: t('download.pdfDownloaded'),
+        description: t('download.pdfSavedDesc', { fileName }),
       });
       setTimeout(() => {
         setExportStatus('idle');
@@ -113,9 +115,9 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
       setExportStatus('idle');
       toast({
         variant: 'destructive',
-        title: 'PDF export failed',
+        title: t('download.pdfFailedTitle'),
         description:
-          err instanceof Error ? err.message : 'Please try again in a moment.',
+          err instanceof Error ? err.message : t('richText.tryAgainDesc'),
       });
     }
   };
@@ -131,9 +133,9 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
     >
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Download Options</DialogTitle>
+          <DialogTitle>{t('download.title')}</DialogTitle>
           <DialogDescription>
-            Export a print-ready A4 PDF or save a portable JSON backup of your CV.
+            {t('download.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -144,9 +146,9 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
             className="flex flex-col items-center justify-center gap-3 py-8 text-center"
           >
             <Loader2 className="h-9 w-9 animate-spin text-primary" />
-            <p className="text-sm font-semibold">Generating your PDF...</p>
+            <p className="text-sm font-semibold">{t('download.generatingPdf')}</p>
             <p className="text-xs text-muted-foreground">
-              Preparing high-resolution A4 layout and typography.
+              {t('download.generatingPdfDesc')}
             </p>
           </div>
         ) : exportStatus === 'completed' ? (
@@ -156,7 +158,7 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
             className="flex flex-col items-center justify-center gap-3 py-8 text-center"
           >
             <CheckCircle2 className="h-10 w-10 text-emerald-500" />
-            <p className="text-sm font-semibold">PDF downloaded!</p>
+            <p className="text-sm font-semibold">{t('download.pdfDownloaded')}</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-3 py-2">
@@ -169,9 +171,9 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
                 <FileDown className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold">PDF Document (.pdf)</p>
+                <p className="text-sm font-semibold">{t('download.pdfOptionTitle')}</p>
                 <p className="text-xs text-muted-foreground">
-                  High-resolution A4 document ready for job applications and ATS systems.
+                  {t('download.pdfOptionDesc')}
                 </p>
               </div>
             </button>
@@ -185,9 +187,9 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
                 <FileJson className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold">CVMaster Backup (.json)</p>
+                <p className="text-sm font-semibold">{t('download.jsonOptionTitle')}</p>
                 <p className="text-xs text-muted-foreground">
-                  Save your structured resume data to import and continue editing anytime.
+                  {t('download.jsonOptionDesc')}
                 </p>
               </div>
             </button>

@@ -555,6 +555,8 @@ export function DeleteConfirmDialog({
   onConfirm,
   title = "Are you absolutely sure?",
   description = "This action cannot be undone. This will permanently delete this item.",
+  cancelText = "Cancel",
+  confirmText = "Delete",
 }: {
   isOpen?: boolean;
   setIsOpen?: (open: boolean) => void;
@@ -564,6 +566,8 @@ export function DeleteConfirmDialog({
   onConfirm?: () => void;
   title?: string;
   description?: string;
+  cancelText?: string;
+  confirmText?: string;
 }) {
   const resolvedOpen = open ?? isOpen ?? false;
   const resolvedOnOpenChange = onOpenChange ?? setIsOpen ?? (() => {});
@@ -584,10 +588,10 @@ export function DeleteConfirmDialog({
           <AlertDialogPrimitive.Cancel
             className={cn(buttonVariants({ variant: "outline" }), "mt-2 sm:mt-0")}
           >
-            Cancel
+            {cancelText}
           </AlertDialogPrimitive.Cancel>
           <Button asChild variant="destructive" onClick={resolvedOnConfirm}>
-            <AlertDialogPrimitive.Action>Delete</AlertDialogPrimitive.Action>
+            <AlertDialogPrimitive.Action>{confirmText}</AlertDialogPrimitive.Action>
           </Button>
         </div>
       </AlertDialogContent>

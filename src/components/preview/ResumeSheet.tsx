@@ -5,6 +5,7 @@ import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import { loadFontStylesheet } from '@/services/fontsService';
 import { A4_HEIGHT_PX, A4_WIDTH_PX } from '@/lib/utils';
 import type { SectionKey } from '@/types/resume';
+import { useLanguage } from '@/context/LanguageContext';
 
 const VERTICAL_SPACING_CLASSES: Record<number, string> = {
   1: 'space-y-1',
@@ -64,6 +65,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
   ({ mode = 'preview' }, forwardedRef) => {
     const { resumeData, sectionOrder, hiddenItemIds } = useResumeStore();
     const { pdfSettings } = usePdfSettingsStore();
+    const { t } = useLanguage();
     const internalRef = useRef<HTMLDivElement | null>(null);
     const [sheetHeight, setSheetHeight] = useState<number>(A4_HEIGHT_PX);
 
@@ -885,7 +887,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
               >
                 <hr className="w-full border-t-2 border-dashed border-rose-500/70" />
                 <span className="absolute rounded-full bg-rose-500 px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white shadow">
-                  Page {idx + 2} starts
+                  {t('canvas.pageStarts', { page: idx + 2 })}
                 </span>
               </div>
             );

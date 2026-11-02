@@ -416,4 +416,32 @@ describe('Phase 5 Quality Assurance — Workflows, Responsive UI, Persistence, P
     expect(container.querySelector('img')).toBeNull();
     unmount();
   });
+
+  it('supports switching to Vietnamese (vi) language and persists selection in localStorage', () => {
+    const { unmount } = render(<App />);
+
+    // Default is English
+    expect(screen.getByText('Personal Information')).toBeInTheDocument();
+    expect(screen.getByText('Full Name')).toBeInTheDocument();
+
+    // Open language switcher and select Vietnamese
+    const switcherBtn = screen.getByTestId('language-switcher');
+    fireEvent.click(switcherBtn);
+
+    const viOption = screen.getByTestId('lang-option-vi');
+    fireEvent.click(viOption);
+
+    // Verify localStorage persistence and HTML lang attribute
+    expect(localStorage.getItem('cv-master-lang')).toBe('vi');
+    expect(document.documentElement.lang).toBe('vi');
+
+    // Verify Vietnamese translations in Header & Editor
+    expect(screen.getByText('Thông tin cá nhân')).toBeInTheDocument();
+    expect(screen.getByText('Họ và tên')).toBeInTheDocument();
+    expect(screen.getByText('Đánh giá CV bằng AI')).toBeInTheDocument();
+    expect(screen.getByText('Tải xuống')).toBeInTheDocument();
+    expect(screen.getByText('Nhập CV')).toBeInTheDocument();
+
+    unmount();
+  });
 });

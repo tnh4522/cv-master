@@ -14,6 +14,7 @@ import { toast } from '@/components/ui/toast';
 import { DownloadDialog } from '@/components/modals/DownloadDialog';
 import { ImportDialog } from '@/components/modals/ImportDialog';
 import { AiReviewDialog } from '@/components/modals/AiReviewDialog';
+import { LanguageSwitcher, useLanguage } from '@/context/LanguageContext';
 import {
   usePdfSettingsStore,
   useResumeStore,
@@ -24,6 +25,7 @@ export function Header() {
   const { resetResume } = useResumeStore();
   const { resetPdfSettings } = usePdfSettingsStore();
   const { clearAnalysis } = useReviewStore();
+  const { t } = useLanguage();
 
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
@@ -36,8 +38,8 @@ export function Header() {
     clearAnalysis();
     setConfirmResetOpen(false);
     toast({
-      title: 'Workspace reset',
-      description: 'All CV data and settings have been restored to defaults.',
+      title: t('header.resetToastTitle'),
+      description: t('header.resetToastDesc'),
     });
   };
 
@@ -65,7 +67,7 @@ export function Header() {
             onClick={() => setAiReviewOpen(true)}
           >
             <Sparkles className="h-3.5 w-3.5" />
-            <span>AI CV Review</span>
+            <span>{t('header.aiReview')}</span>
           </Button>
 
           <Button
@@ -73,11 +75,11 @@ export function Header() {
             variant="outline"
             size="sm"
             className="h-8 gap-1.5 px-2.5 text-xs"
-            tooltipContent="Download PDF or JSON"
+            tooltipContent={t('header.downloadTooltip')}
             onClick={() => setDownloadOpen(true)}
           >
             <Download className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Download</span>
+            <span className="hidden sm:inline">{t('header.download')}</span>
           </Button>
 
           <Button
@@ -85,19 +87,21 @@ export function Header() {
             variant="outline"
             size="sm"
             className="h-8 gap-1.5 px-2.5 text-xs"
-            tooltipContent="Import CV"
+            tooltipContent={t('header.importTooltip')}
             onClick={() => setImportOpen(true)}
           >
             <Upload className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">Import</span>
+            <span className="hidden sm:inline">{t('header.import')}</span>
           </Button>
+
+          <LanguageSwitcher />
 
           <Button
             type="button"
             variant="ghost"
             size="icon"
             className="h-8 w-8 text-muted-foreground hover:text-destructive"
-            tooltipContent="Reset to default CV"
+            tooltipContent={t('header.resetTooltip')}
             onClick={() => setConfirmResetOpen(true)}
           >
             <RotateCcw className="h-4 w-4" />
@@ -112,8 +116,10 @@ export function Header() {
       <DeleteConfirmDialog
         open={confirmResetOpen}
         onOpenChange={setConfirmResetOpen}
-        title="Reset all CV data?"
-        description="This will replace your current CV and styling settings with the default template. Export a JSON backup first if you want to keep your changes."
+        title={t('header.resetConfirmTitle')}
+        description={t('header.resetConfirmDesc')}
+        cancelText={t('common.cancel')}
+        confirmText={t('common.reset')}
         onConfirm={handleResetAll}
       />
     </>
