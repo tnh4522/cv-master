@@ -1,0 +1,192 @@
+@import "https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&display=swap";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 48 33.33% 97.05%;
+  --foreground: 48 19.6% 20%;
+  --card: 48 33.33% 97.05%;
+  --card-foreground: 60 2.56% 7.64%;
+  --popover: 48 33.33% 97.05%;
+  --popover-foreground: 48 19.6% 20%;
+  --primary: 15.1111 55.55% 52.35%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 46.1538 22.8% 88.82%;
+  --secondary-foreground: 50.7692 8.49% 30%;
+  --muted: 44 29.41% 90%;
+  --muted-foreground: 50 2.36% 50.19%;
+  --accent: 46.1538 22.8% 88.82%;
+  --accent-foreground: 50.7692 19.4% 13.13%;
+  --destructive: 0 84.23% 60.19%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142.1 76.2% 36.3%;
+  --success-foreground: 0 0% 100%;
+  --border: 50 7.5% 84.31%;
+  --input: 50.7692 7.97% 68.03%;
+  --ring: 15.1111 55.55% 52.35%;
+  --font-sans: "Work Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: 60 2.7% 14.5%;
+  --foreground: 46.1538 9.77% 73.92%;
+  --card: 60 2.7% 14.5%;
+  --card-foreground: 48 33.33% 97.05%;
+  --popover: 60 2.12% 18.43%;
+  --popover-foreground: 46.1538 9.77% 73.92%;
+  --primary: 14.7692 63.1% 59.6%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 48 33.33% 97.05%;
+  --secondary-foreground: 60 2.12% 18.43%;
+  --muted: 60 3.84% 10.19%;
+  --muted-foreground: 51.4286 8.86% 69.01%;
+  --accent: 48 10.63% 9.21%;
+  --accent-foreground: 51.4286 25.92% 94.7%;
+  --destructive: 0 84.23% 60.19%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 142.1 76.2% 36.3%;
+  --success-foreground: 0 0% 100%;
+  --border: 60 5.08% 23.13%;
+  --input: 52.5 5.12% 30.58%;
+  --ring: 14.7692 63.1% 59.6%;
+}
+
+* {
+  border-color: hsl(var(--border));
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: hsl(var(--background));
+  font-family: var(--font-sans);
+  color: hsl(var(--foreground));
+}
+
+::selection {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.scrollbar-hide {
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.hidden-fix {
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  height: 0;
+}
+
+[data-radix-scroll-area-viewport] > div:first-child {
+  display: flex !important;
+  max-width: 100%;
+  flex-direction: column;
+}
+
+svg.animate-dash {
+  width: 3.25em;
+  transform-origin: center;
+  animation: rotate4 2s linear infinite;
+}
+
+svg.animate-dash circle {
+  fill: none;
+  stroke: hsl(var(--primary));
+  stroke-width: 2;
+  stroke-dasharray: 1, 200;
+  stroke-dashoffset: 0;
+  stroke-linecap: round;
+  animation: dash4 1.5s ease-in-out infinite;
+}
+
+@keyframes rotate4 {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes dash4 {
+  0% {
+    stroke-dasharray: 1, 200;
+    stroke-dashoffset: 0;
+  }
+  50% {
+    stroke-dasharray: 90, 200;
+    stroke-dashoffset: -35px;
+  }
+  to {
+    stroke-dashoffset: -125px;
+  }
+}
+
+.preview ul {
+  list-style-type: disc;
+  padding-left: 2rem;
+  line-height: inherit;
+}
+
+.preview ol {
+  list-style-type: decimal;
+  padding-left: 2rem;
+  line-height: inherit;
+}
+
+.preview a {
+  text-decoration-line: underline;
+}
+
+.tiptap {
+  max-height: 15rem;
+  min-height: 7rem;
+  overflow-y: auto;
+  padding: 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.tiptap:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.tiptap ul {
+  margin-bottom: 1rem;
+  list-style-type: disc;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.tiptap ol {
+  margin-bottom: 1rem;
+  list-style-type: decimal;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.tiptap ul li:not(:last-child) {
+  margin-bottom: 0.5rem;
+}
+
+.tiptap p + ul,
+.tiptap p + ol {
+  margin-top: 1rem;
+}
+
+.tiptap a {
+  text-decoration-line: underline;
+}

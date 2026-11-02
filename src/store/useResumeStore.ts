@@ -1,0 +1,510 @@
+import { create } from "zustand";
+import { CONFIG } from "@/lib/utils";
+import type {
+  BasicsData,
+  ResumeData,
+  SectionKey,
+  ListSectionKey,
+  SectionItemUnion,
+  PdfSettings,
+  CVAnalysisResult,
+} from "@/types/resume";
+
+export const DEFAULT_SECTION_ORDER: SectionKey[] = [
+  "summary",
+  "experience",
+  "projects",
+  "education",
+  "skills",
+  "languages",
+  "certifications",
+  "awards",
+  "volunteering",
+  "interests",
+];
+
+export const DEFAULT_RESUME_DATA: ResumeData = {
+  basics: {
+    name: "John Doe",
+    title: "Software Developer",
+    email: "youremail@domain.com",
+    linkedin: "https://linkedin.com/in/johndoe",
+    website: "https://johndoe.com",
+    phone: { value: "+010101010", breakAfter: false },
+    location: { value: "Cairo, Egypt", breakAfter: false },
+    customFields: [],
+    alignment: "start",
+    photo: {
+      url: "",
+      size: 100,
+      borderRadius: 4,
+      visible: true,
+    },
+  },
+  summary: {
+    sectionTitle: "Summary",
+    content:
+      "<p>Results-driven Software Developer with experience designing, building, and scaling modern web applications.</p>",
+  },
+  experience: [
+    {
+      id: "exp-default-1",
+      name: "TechNova Solutions",
+      position: "Senior Frontend Engineer",
+      dateRange: "Jan 2022 - Present",
+      location: "Remote",
+      employmentType: "Full-time",
+      website: "https://technova.example.com",
+      summary:
+        "<ul><li><p>Architected and delivered modular React and TypeScript applications serving 150K+ monthly active users.</p></li><li><p>Improved Core Web Vitals and reduced bundle size by 35% through code splitting and lazy loading.</p></li></ul>",
+    },
+  ],
+  projects: [
+    {
+      id: "proj-default-1",
+      name: "OpenMetrics Dashboard",
+      description: "Real-time analytics and observability platform",
+      date: "2024",
+      website: "https://github.com/johndoe/openmetrics",
+      summary:
+        "<p>Built a customizable telemetry dashboard with interactive charts and instant PDF/JSON reporting.</p>",
+      keywords: ["React", "TypeScript", "Tailwind CSS"],
+    },
+  ],
+  education: [
+    {
+      id: "edu-default-1",
+      name: "Cairo University",
+      degree: "B.Sc.",
+      studyField: "Computer Science",
+      date: "2016 - 2020",
+      website: "",
+      summary: "<p>Graduated with Honors. Coursework in Algorithms, Distributed Systems, and Software Engineering.</p>",
+    },
+  ],
+  skills: [
+    {
+      id: "skill-default-1",
+      name: "Frontend & Languages",
+      keywords: ["TypeScript", "JavaScript", "React", "Next.js", "Tailwind CSS", "HTML5/CSS3"],
+    },
+    {
+      id: "skill-default-2",
+      name: "Backend & Cloud",
+      keywords: ["Node.js", "PostgreSQL", "Docker", "Git", "CI/CD"],
+    },
+  ],
+  languages: [
+    {
+      id: "lang-default-1",
+      name: "English",
+      level: "Fluent",
+    },
+    {
+      id: "lang-default-2",
+      name: "Arabic",
+      level: "Native or Bilingual",
+    },
+  ],
+  certifications: [],
+  awards: [],
+  volunteering: [],
+  interests: [],
+  sectionTitles: {
+    summary: "Summary",
+    experience: "Experience",
+    projects: "Projects",
+    education: "Education",
+    skills: "Skills",
+    languages: "Languages",
+    certifications: "Certifications",
+    awards: "Awards",
+    volunteering: "Volunteering",
+    interests: "Interests",
+  },
+};
+
+export const initialResumeData = DEFAULT_RESUME_DATA;
+
+export const DEFAULT_PDF_SETTINGS: PdfSettings = {
+  fontSize: 14,
+  fontFamily: "Work Sans",
+  fontCategory: "ATS-Friendly",
+  scale: CONFIG.SCALE.INITIAL,
+  lineHeight: 5,
+  verticalSpacing: 1,
+  margin: {
+    MIN: CONFIG.MARGIN.MIN,
+    MAX: CONFIG.MARGIN.MAX,
+    INITIAL: CONFIG.MARGIN.INITIAL,
+    VALUE: CONFIG.MARGIN.VALUE,
+    STEP: CONFIG.MARGIN.STEP,
+  },
+  pageBreakLine: true,
+  skillsLayout: "inline",
+};
+
+export function readLocalStorage<T>(key: string, fallback: T | null = null): T | null {
+  try {
+    if (typeof window === "undefined") return fallback;
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as T) : fallback;
+  } catch (error) {
+    console.error(`Error parsing ${key} from localStorage:`, error);
+    return fallback;
+  }
+}
+
+const persistedResumeData = readLocalStorage<Partial<ResumeData>>("resumeData");
+const persistedSectionOrder = readLocalStorage<{ sectionOrder?: SectionKey[] }>("sectionOrder");
+const persistedHiddenIds = readLocalStorage<{ hiddenItemIds?: string[] }>("hiddenItemIds");
+
+function buildMergedSectionOrder(persisted?: SectionKey[] | null): SectionKey[] {
+  if (!Array.isArray(persisted) || persisted.length === 0) {
+    return DEFAULT_SECTION_ORDER;
+  }
+  const missing = DEFAULT_SECTION_ORDER.filter((key) => !persisted.includes(key));
+  return [...persisted, ...missing];
+}
+
+function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeData {
+  return {
+    ...DEFAULT_RESUME_DATA,
+    ...(persisted || {}),
+    interests: Array.isArray(persisted?.interests)
+      ? persisted.interests
+      : DEFAULT_RESUME_DATA.interests,
+    basics: {
+      ...DEFAULT_RESUME_DATA.basics,
+      ...(persisted?.basics || {}),
+      phone: {
+        ...DEFAULT_RESUME_DATA.basics.phone,
+        ...(persisted?.basics?.phone || {}),
+      },
+      location: {
+        ...DEFAULT_RESUME_DATA.basics.location,
+        ...(persisted?.basics?.location || {}),
+      },
+      photo: {
+        ...DEFAULT_RESUME_DATA.basics.photo,
+        ...(persisted?.basics?.photo || {}),
+      },
+      customFields: persisted?.basics?.customFields ?? DEFAULT_RESUME_DATA.basics.customFields,
+    },
+    summary: {
+      ...DEFAULT_RESUME_DATA.summary,
+      ...(typeof persisted?.summary === "object" && persisted?.summary !== null
+        ? persisted.summary
+        : {}),
+    },
+    sectionTitles: {
+      ...DEFAULT_RESUME_DATA.sectionTitles,
+      ...(persisted?.sectionTitles || {}),
+    },
+  };
+}
+
+export interface ResumeStoreState {
+  sectionOrder: SectionKey[];
+  hiddenItemIds: string[];
+  resumeData: ResumeData;
+  setData: (partial: Partial<ResumeData>) => void;
+  setResumeData: (data: ResumeData) => void;
+  updateBasics: (patch: Partial<BasicsData>) => void;
+  resetPhotoSettings: () => void;
+  updateSummary: (content: string) => void;
+  updateSectionTitle: (section: SectionKey, title: string) => void;
+  addSectionItem: (section: ListSectionKey, item: SectionItemUnion) => void;
+  updateSectionItem: (section: ListSectionKey, item: SectionItemUnion, index?: number) => void;
+  deleteSectionItem: (section: ListSectionKey, id: string) => void;
+  duplicateSectionItem: (section: ListSectionKey, id: string) => void;
+  setSectionOrder: (order: SectionKey[]) => void;
+  updateSectionOrder: (order: SectionKey[]) => void;
+  resetSectionOrder: () => void;
+  toggleHiddenItem: (id: string) => void;
+  toggleHideItem: (id: string) => void;
+  setHiddenItemIds: (ids: string[]) => void;
+  resetResume: () => void;
+}
+
+export const useResumeStore = create<ResumeStoreState>((set, get) => ({
+  sectionOrder: buildMergedSectionOrder(persistedSectionOrder?.sectionOrder),
+  hiddenItemIds: persistedHiddenIds?.hiddenItemIds ?? [],
+  resumeData: buildMergedResumeData(persistedResumeData),
+
+  setData: (partial) => {
+    set((state) => {
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        ...partial,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  setResumeData: (data) => {
+    const merged = buildMergedResumeData(data);
+    localStorage.setItem("resumeData", JSON.stringify(merged));
+    set({ resumeData: merged });
+  },
+
+  updateBasics: (patch) => {
+    set((state) => {
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        basics: {
+          ...state.resumeData.basics,
+          ...patch,
+        },
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  resetPhotoSettings: () => {
+    set((state) => {
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        basics: {
+          ...state.resumeData.basics,
+          photo: {
+            url: "",
+            size: CONFIG.PHOTO.SIZE.DEFAULT,
+            borderRadius: CONFIG.PHOTO.RADIUS.DEFAULT,
+            visible: true,
+          },
+        },
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  updateSummary: (content) => {
+    set((state) => {
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        summary: {
+          ...state.resumeData.summary,
+          content,
+        },
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  updateSectionTitle: (section, title) => {
+    set((state) => {
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        sectionTitles: {
+          ...state.resumeData.sectionTitles,
+          [section]: title,
+        },
+        summary:
+          section === "summary"
+            ? { ...state.resumeData.summary, sectionTitle: title }
+            : state.resumeData.summary,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  addSectionItem: (section, item) => {
+    set((state) => {
+      const list = state.resumeData[section] as SectionItemUnion[];
+      const nextList = [...list, item];
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        [section]: nextList,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  updateSectionItem: (section, item, index) => {
+    set((state) => {
+      const list = [...(state.resumeData[section] as SectionItemUnion[])];
+      if (typeof index === "number" && index >= 0 && index < list.length) {
+        list[index] = item;
+      } else {
+        const idx = list.findIndex((existing) => existing.id === item.id);
+        if (idx !== -1) {
+          list[idx] = item;
+        }
+      }
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        [section]: list,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  deleteSectionItem: (section, id) => {
+    set((state) => {
+      const list = state.resumeData[section] as SectionItemUnion[];
+      const nextList = list.filter((item) => item.id !== id);
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        [section]: nextList,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  duplicateSectionItem: (section, id) => {
+    set((state) => {
+      const list = state.resumeData[section] as SectionItemUnion[];
+      const idx = list.findIndex((item) => item.id === id);
+      if (idx === -1) return state;
+      const original = list[idx];
+      const duplicate: SectionItemUnion = {
+        ...original,
+        id: `${section}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        name: `${original.name} (Copy)`,
+      };
+      const nextList = [
+        ...list.slice(0, idx + 1),
+        duplicate,
+        ...list.slice(idx + 1),
+      ];
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        [section]: nextList,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  setSectionOrder: (order) => {
+    set(() => ({ sectionOrder: order }));
+    localStorage.setItem("sectionOrder", JSON.stringify({ sectionOrder: order }));
+  },
+
+  updateSectionOrder: (order) => {
+    set(() => ({ sectionOrder: order }));
+    localStorage.setItem("sectionOrder", JSON.stringify({ sectionOrder: order }));
+  },
+
+  resetSectionOrder: () => {
+    set(() => ({ sectionOrder: DEFAULT_SECTION_ORDER }));
+    localStorage.setItem(
+      "sectionOrder",
+      JSON.stringify({ sectionOrder: DEFAULT_SECTION_ORDER })
+    );
+  },
+
+  toggleHiddenItem: (id) => {
+    const current = get().hiddenItemIds;
+    const next = current.includes(id)
+      ? current.filter((item) => item !== id)
+      : [...current, id];
+    set({ hiddenItemIds: next });
+    localStorage.setItem("hiddenItemIds", JSON.stringify({ hiddenItemIds: next }));
+  },
+
+  toggleHideItem: (id) => {
+    get().toggleHiddenItem(id);
+  },
+
+  setHiddenItemIds: (ids) => {
+    set({ hiddenItemIds: ids });
+    localStorage.setItem("hiddenItemIds", JSON.stringify({ hiddenItemIds: ids }));
+  },
+
+  resetResume: () => {
+    localStorage.removeItem("resumeData");
+    localStorage.removeItem("sectionOrder");
+    localStorage.removeItem("hiddenItemIds");
+    set({
+      resumeData: DEFAULT_RESUME_DATA,
+      sectionOrder: DEFAULT_SECTION_ORDER,
+      hiddenItemIds: [],
+    });
+  },
+}));
+
+const persistedPdfSettings = readLocalStorage<Partial<PdfSettings>>("pdfSetting");
+if (persistedPdfSettings && persistedPdfSettings.skillsLayout === undefined) {
+  persistedPdfSettings.skillsLayout = "inline";
+  if (typeof window !== "undefined") {
+    localStorage.setItem("pdfSetting", JSON.stringify(persistedPdfSettings));
+  }
+}
+
+export interface PdfSettingsStoreState {
+  pdfSettings: PdfSettings;
+  setValue: <K extends keyof PdfSettings>(key: K, value: PdfSettings[K]) => void;
+  updatePdfSettings: (patch: Partial<PdfSettings>) => void;
+  resetPdfSettings: () => void;
+}
+
+export const usePdfSettingsStore = create<PdfSettingsStoreState>((set) => ({
+  pdfSettings: {
+    ...DEFAULT_PDF_SETTINGS,
+    ...persistedPdfSettings,
+    margin: {
+      ...DEFAULT_PDF_SETTINGS.margin,
+      ...(persistedPdfSettings?.margin || {}),
+    },
+  },
+  setValue: (key, value) => {
+    set((state) => {
+      const nextSettings: PdfSettings = {
+        ...state.pdfSettings,
+        [key]: value,
+      };
+      localStorage.setItem("pdfSetting", JSON.stringify(nextSettings));
+      return { pdfSettings: nextSettings };
+    });
+  },
+  updatePdfSettings: (patch) => {
+    set((state) => {
+      const nextSettings: PdfSettings = {
+        ...state.pdfSettings,
+        ...patch,
+      };
+      localStorage.setItem("pdfSetting", JSON.stringify(nextSettings));
+      return { pdfSettings: nextSettings };
+    });
+  },
+  resetPdfSettings: () => {
+    localStorage.removeItem("pdfSetting");
+    set({ pdfSettings: DEFAULT_PDF_SETTINGS });
+  },
+}));
+
+export interface ReviewStoreState {
+  currentAnalysis: CVAnalysisResult | null;
+  isAnalyzing: boolean;
+  error: string | null;
+  setAnalysis: (analysis: CVAnalysisResult) => void;
+  setIsAnalyzing: (isAnalyzing: boolean) => void;
+  clearAnalysis: () => void;
+  setError: (error: string | null) => void;
+}
+
+export const useReviewStore = create<ReviewStoreState>((set) => ({
+  currentAnalysis: readLocalStorage<CVAnalysisResult>("currentAnalysis", null),
+  isAnalyzing: false,
+  error: null,
+  setAnalysis: (analysis) => {
+    localStorage.setItem("currentAnalysis", JSON.stringify(analysis));
+    set({ currentAnalysis: analysis });
+  },
+  setIsAnalyzing: (isAnalyzing) => set({ isAnalyzing }),
+  clearAnalysis: () => {
+    localStorage.removeItem("currentAnalysis");
+    set({ currentAnalysis: null });
+  },
+  setError: (error) => set({ error }),
+}));
