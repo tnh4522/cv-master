@@ -787,6 +787,16 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                   </span>
                 )}
 
+                {basics.phone?.value && (
+                  <>
+                    <span className="inline-flex items-center gap-1">
+                      <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                      <span>{basics.phone.value}</span>
+                    </span>
+                    {basics.phone.breakAfter && <div className="basis-full h-0" />}
+                  </>
+                )}
+
                 {basics.linkedin && (
                   <span className="inline-flex items-center gap-1">
                     <LinkedInIcon size={14} />
@@ -813,16 +823,6 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       {basics.website.replace(/^https?:\/\/(www\.)?/i, '')}
                     </a>
                   </span>
-                )}
-
-                {basics.phone?.value && (
-                  <>
-                    <span className="inline-flex items-center gap-1">
-                      <Phone className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
-                      <span>{basics.phone.value}</span>
-                    </span>
-                    {basics.phone.breakAfter && <div className="basis-full h-0" />}
-                  </>
                 )}
 
                 {basics.dateOfBirth?.value && (

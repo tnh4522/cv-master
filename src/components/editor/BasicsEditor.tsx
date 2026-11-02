@@ -495,42 +495,6 @@ export function BasicsEditor() {
           )}
         </div>
 
-        <div className="space-y-1.5">
-          <Label htmlFor="basics-linkedin">{t('basics.linkedin')}</Label>
-          <Input
-            id="basics-linkedin"
-            placeholder="https://linkedin.com/in/johndoe"
-            value={basics.linkedin}
-            hasError={Boolean(fieldErrors['linkedin'])}
-            onChange={(e) => {
-              const next = { ...basics, linkedin: e.target.value };
-              updateBasics({ linkedin: e.target.value });
-              validateSingleField('linkedin', next);
-            }}
-          />
-          {fieldErrors['linkedin'] && (
-            <p className="text-xs text-destructive">{fieldErrors['linkedin']}</p>
-          )}
-        </div>
-
-        <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="basics-website">{t('basics.portfolio')}</Label>
-          <Input
-            id="basics-website"
-            placeholder="https://johndoe.com"
-            value={basics.website}
-            hasError={Boolean(fieldErrors['website'])}
-            onChange={(e) => {
-              const next = { ...basics, website: e.target.value };
-              updateBasics({ website: e.target.value });
-              validateSingleField('website', next);
-            }}
-          />
-          {fieldErrors['website'] && (
-            <p className="text-xs text-destructive">{fieldErrors['website']}</p>
-          )}
-        </div>
-
         {/* Phone with Break After switch */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
@@ -564,6 +528,42 @@ export function BasicsEditor() {
               })
             }
           />
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="basics-linkedin">{t('basics.linkedin')}</Label>
+          <Input
+            id="basics-linkedin"
+            placeholder="https://linkedin.com/in/johndoe"
+            value={basics.linkedin}
+            hasError={Boolean(fieldErrors['linkedin'])}
+            onChange={(e) => {
+              const next = { ...basics, linkedin: e.target.value };
+              updateBasics({ linkedin: e.target.value });
+              validateSingleField('linkedin', next);
+            }}
+          />
+          {fieldErrors['linkedin'] && (
+            <p className="text-xs text-destructive">{fieldErrors['linkedin']}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="basics-website">{t('basics.portfolio')}</Label>
+          <Input
+            id="basics-website"
+            placeholder="https://johndoe.com"
+            value={basics.website}
+            hasError={Boolean(fieldErrors['website'])}
+            onChange={(e) => {
+              const next = { ...basics, website: e.target.value };
+              updateBasics({ website: e.target.value });
+              validateSingleField('website', next);
+            }}
+          />
+          {fieldErrors['website'] && (
+            <p className="text-xs text-destructive">{fieldErrors['website']}</p>
+          )}
         </div>
 
         {/* Date of Birth with Break After switch */}
@@ -608,7 +608,7 @@ export function BasicsEditor() {
         </div>
 
         {/* Location with Break After switch */}
-        <div className="space-y-1.5 sm:col-span-2">
+        <div className="space-y-1.5">
           <div className="flex items-center justify-between">
             <Label htmlFor="basics-location">{t('basics.location')}</Label>
             <div className="flex items-center gap-1.5">
