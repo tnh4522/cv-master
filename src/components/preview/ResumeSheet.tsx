@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
-import { Mail, Globe, Phone, MapPin } from 'lucide-react';
+import { Mail, Globe, Phone, MapPin, Calendar } from 'lucide-react';
 import { CustomFieldIcon, LinkedInIcon } from '@/components/icons/CustomIcons';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import { loadFontStylesheet } from '@/services/fontsService';
@@ -822,6 +822,18 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       <span>{basics.phone.value}</span>
                     </span>
                     {basics.phone.breakAfter && <div className="basis-full h-0" />}
+                  </>
+                )}
+
+                {basics.dateOfBirth?.value && (
+                  <>
+                    <span className="inline-flex items-center gap-1">
+                      <Calendar className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
+                      <span>{basics.dateOfBirth.value}</span>
+                    </span>
+                    {basics.dateOfBirth.breakAfter && (
+                      <div className="basis-full h-0" />
+                    )}
                   </>
                 )}
 

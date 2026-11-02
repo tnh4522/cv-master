@@ -32,6 +32,7 @@ export const DEFAULT_RESUME_DATA: ResumeData = {
     website: "https://johndoe.com",
     phone: { value: "+010101010", breakAfter: false },
     location: { value: "Cairo, Egypt", breakAfter: false },
+    dateOfBirth: { value: "", breakAfter: false },
     customFields: [],
     alignment: "start",
     photo: {
@@ -196,6 +197,10 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
       location: {
         ...DEFAULT_RESUME_DATA.basics.location,
         ...(persisted?.basics?.location || {}),
+      },
+      dateOfBirth: {
+        value: persisted?.basics?.dateOfBirth?.value ?? "",
+        breakAfter: Boolean(persisted?.basics?.dateOfBirth?.breakAfter),
       },
       photo: {
         ...DEFAULT_RESUME_DATA.basics.photo,

@@ -76,6 +76,10 @@ export interface BasicsData {
     value: string;
     breakAfter: boolean;
   };
+  dateOfBirth?: {
+    value: string;
+    breakAfter: boolean;
+  };
   customFields: CustomFieldItem[];
   alignment: AlignmentType;
   photo: PhotoConfig;

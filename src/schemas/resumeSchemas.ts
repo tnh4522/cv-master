@@ -14,6 +14,12 @@ export const basicsFormSchema = z.object({
     value: z.string(),
     breakAfter: z.boolean(),
   }),
+  dateOfBirth: z
+    .object({
+      value: z.string(),
+      breakAfter: z.boolean(),
+    })
+    .optional(),
   customFields: z.array(
     z.object({
       id: z.string(),
@@ -124,6 +130,13 @@ export const importBasicsSchema = z.object({
     value: z.string(),
     breakAfter: z.boolean().optional().default(false),
   }),
+  dateOfBirth: z
+    .object({
+      value: z.string().optional().default(""),
+      breakAfter: z.boolean().optional().default(false),
+    })
+    .optional()
+    .default({ value: "", breakAfter: false }),
   customFields: z
     .array(
       z.object({

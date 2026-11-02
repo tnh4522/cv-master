@@ -261,5 +261,12 @@ describe('Phase 2 Core Implementation — Stores, Schemas, Editor & Preview', ()
 
     fireEvent.change(nameInput, { target: { value: 'Grace Hopper' } });
     expect(useResumeStore.getState().resumeData.basics.name).toBe('Grace Hopper');
+
+    // Test Date of Birth
+    const dobInput = screen.getByLabelText(/Date of Birth/i) as HTMLInputElement;
+    expect(dobInput).toBeInTheDocument();
+    fireEvent.change(dobInput, { target: { value: '15/01/1995' } });
+    expect(useResumeStore.getState().resumeData.basics.dateOfBirth?.value).toBe('15/01/1995');
+    expect(screen.getByText('15/01/1995')).toBeInTheDocument();
   });
 });

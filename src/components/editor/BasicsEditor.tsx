@@ -55,6 +55,7 @@ export function BasicsEditor() {
       website: nextBasics.website,
       phone: nextBasics.phone,
       location: nextBasics.location,
+      dateOfBirth: nextBasics.dateOfBirth,
       customFields: nextBasics.customFields,
     });
 
@@ -565,8 +566,49 @@ export function BasicsEditor() {
           />
         </div>
 
-        {/* Location with Break After switch */}
+        {/* Date of Birth with Break After switch */}
         <div className="space-y-1.5">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="basics-date-of-birth">{t('basics.dateOfBirth')}</Label>
+            <div className="flex items-center gap-1.5">
+              <Label
+                htmlFor="date-of-birth-break-after"
+                className="cursor-pointer text-xs font-normal text-muted-foreground"
+              >
+                {t('common.breakAfter')}
+              </Label>
+              <Switch
+                id="date-of-birth-break-after"
+                disabled={!basics.dateOfBirth?.value?.trim()}
+                checked={basics.dateOfBirth?.breakAfter ?? false}
+                onCheckedChange={(checked) =>
+                  updateBasics({
+                    dateOfBirth: {
+                      value: basics.dateOfBirth?.value || '',
+                      breakAfter: checked,
+                    },
+                  })
+                }
+              />
+            </div>
+          </div>
+          <Input
+            id="basics-date-of-birth"
+            placeholder={t('basics.dateOfBirthPlaceholder')}
+            value={basics.dateOfBirth?.value || ''}
+            onChange={(e) =>
+              updateBasics({
+                dateOfBirth: {
+                  value: e.target.value,
+                  breakAfter: basics.dateOfBirth?.breakAfter ?? false,
+                },
+              })
+            }
+          />
+        </div>
+
+        {/* Location with Break After switch */}
+        <div className="space-y-1.5 sm:col-span-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="basics-location">{t('basics.location')}</Label>
             <div className="flex items-center gap-1.5">
