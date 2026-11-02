@@ -141,51 +141,64 @@ export function LanguageSwitcher() {
         variant="outline"
         size="sm"
         className="h-8 gap-1.5 px-2.5 text-xs font-semibold uppercase"
-        tooltipContent={t('header.languageTooltip')}
+        tooltipContent={t('header.uiLanguageTooltip')}
         data-testid="language-switcher"
         aria-expanded={open}
         aria-haspopup="menu"
         onClick={() => setOpen((prev) => !prev)}
       >
         <Globe className="h-3.5 w-3.5" />
+        <span className="hidden sm:inline font-semibold text-muted-foreground">
+          {t('header.uiLanguage')}:
+        </span>
         <span>{language.toUpperCase()}</span>
       </Button>
 
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-1.5 w-36 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
+          className="absolute right-0 z-50 mt-1.5 w-48 overflow-hidden rounded-md border border-border bg-popover p-1 text-popover-foreground shadow-md"
         >
-          <button
-            type="button"
-            role="menuitem"
-            data-testid="lang-option-vi"
-            onClick={() => {
-              setLanguage('vi');
-              setOpen(false);
-            }}
-            className={`flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-xs outline-none transition-colors hover:bg-accent hover:text-accent-foreground ${
-              language === 'vi' ? 'bg-accent font-semibold' : ''
-            }`}
-          >
-            <span className="mr-2">🇻🇳</span>
-            <span>Tiếng Việt</span>
-          </button>
-          <button
-            type="button"
-            role="menuitem"
-            data-testid="lang-option-en"
-            onClick={() => {
-              setLanguage('en');
-              setOpen(false);
-            }}
-            className={`flex w-full cursor-pointer items-center rounded-sm px-2 py-1.5 text-xs outline-none transition-colors hover:bg-accent hover:text-accent-foreground ${
-              language === 'en' ? 'bg-accent font-semibold' : ''
-            }`}
-          >
-            <span className="mr-2">🇺🇸</span>
-            <span>English</span>
-          </button>
+          <div className="border-b border-border/60 px-2.5 py-1.5 text-left">
+            <div className="text-xs font-semibold text-foreground">
+              {t('header.uiLanguagePopoverTitle')}
+            </div>
+            <div className="text-[10px] leading-tight text-muted-foreground">
+              {t('header.uiLanguagePopoverDesc')}
+            </div>
+          </div>
+          <div className="py-1">
+            <button
+              type="button"
+              role="menuitem"
+              data-testid="lang-option-vi"
+              onClick={() => {
+                setLanguage('vi');
+                setOpen(false);
+              }}
+              className={`flex w-full cursor-pointer items-center rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors hover:bg-accent hover:text-accent-foreground ${
+                language === 'vi' ? 'bg-accent font-semibold' : ''
+              }`}
+            >
+              <span className="mr-2">🇻🇳</span>
+              <span>Tiếng Việt (Giao diện)</span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              data-testid="lang-option-en"
+              onClick={() => {
+                setLanguage('en');
+                setOpen(false);
+              }}
+              className={`flex w-full cursor-pointer items-center rounded-sm px-2.5 py-1.5 text-xs outline-none transition-colors hover:bg-accent hover:text-accent-foreground ${
+                language === 'en' ? 'bg-accent font-semibold' : ''
+              }`}
+            >
+              <span className="mr-2">🇺🇸</span>
+              <span>English (Interface)</span>
+            </button>
+          </div>
         </div>
       )}
     </div>

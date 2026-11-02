@@ -9,6 +9,7 @@ import {
   Briefcase,
   Type,
   Sparkles,
+  Users,
   GraduationCap,
   Languages,
   Award,
@@ -217,6 +218,8 @@ export function SectionIcon({
       return <FolderGit2 className={className} />;
     case "skills":
       return <Sparkles className={className} />;
+    case "softSkills":
+      return <Users className={className} />;
     case "education":
       return <GraduationCap className={className} />;
     case "languages":

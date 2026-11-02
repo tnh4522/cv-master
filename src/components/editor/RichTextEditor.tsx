@@ -39,6 +39,7 @@ import {
 } from '@/components/ui/primitives';
 import { toast } from '@/components/ui/toast';
 import { useLanguage } from '@/context/LanguageContext';
+import { useResumeStore } from '@/store/useResumeStore';
 import {
   CUSTOMIZE_OPTIONS,
   type CustomizeOption,
@@ -98,6 +99,8 @@ function EditorToolbar({
 }: EditorToolbarProps) {
   const { editor } = useCurrentEditor();
   const { t } = useLanguage();
+  const { resumeData } = useResumeStore();
+  const cvLang = resumeData.cvLanguage || 'en';
   const [linkUrl, setLinkUrl] = useState('');
   const [linkOpen, setLinkOpen] = useState(false);
   const [customizeKey, setCustomizeKey] = useState<string>('');
@@ -130,7 +133,7 @@ function EditorToolbar({
     try {
       setIsGenerating(true);
       const html = editor.getHTML();
-      const result = await improveWriting(html);
+      const result = await improveWriting(html, cvLang);
       editor.commands.setContent(result);
       onUpdateContent(result);
       toast({
@@ -153,7 +156,7 @@ function EditorToolbar({
     try {
       setIsGenerating(true);
       const html = editor.getHTML();
-      const result = await fixTypos(html);
+      const result = await fixTypos(html, cvLang);
       editor.commands.setContent(result);
       onUpdateContent(result);
       toast({
@@ -177,7 +180,7 @@ function EditorToolbar({
     try {
       setIsGenerating(true);
       const html = editor.getHTML();
-      const result = await customizeWriting(html, value as CustomizeOption);
+      const result = await customizeWriting(html, value as CustomizeOption, cvLang);
       editor.commands.setContent(result);
       onUpdateContent(result);
       const optionLabel = t(`richText.presets.${value}`);

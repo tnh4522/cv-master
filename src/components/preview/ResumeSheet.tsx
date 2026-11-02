@@ -63,7 +63,8 @@ export interface ResumeSheetProps {
 
 export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
   ({ mode = 'preview' }, forwardedRef) => {
-    const { resumeData, sectionOrder, hiddenItemIds } = useResumeStore();
+    const { resumeData, sectionOrder, hiddenItemIds, hiddenSections } =
+      useResumeStore();
     const { pdfSettings } = usePdfSettingsStore();
     const { t } = useLanguage();
     const internalRef = useRef<HTMLDivElement | null>(null);
@@ -104,7 +105,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
       const observer = new ResizeObserver(updateHeight);
       observer.observe(el);
       return () => observer.disconnect();
-    }, [resumeData, pdfSettings, hiddenItemIds, sectionOrder]);
+    }, [resumeData, pdfSettings, hiddenItemIds, hiddenSections, sectionOrder]);
 
     const setRefs = (node: HTMLDivElement | null) => {
       internalRef.current = node;
@@ -132,6 +133,13 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
         : 'items-start text-left';
 
     const renderSection = (key: SectionKey) => {
+      if (
+        hiddenSections?.includes(key) ||
+        resumeData.hiddenSections?.includes(key)
+      ) {
+        return null;
+      }
+
       const headingStyle: React.CSSProperties = {
         fontSize: `${fontSize + 4}px`,
       };
@@ -393,6 +401,46 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
         );
       }
 
+      if (key === 'softSkills') {
+        const items = (resumeData.softSkills || []).filter(
+          (item) => !hiddenItemIds.includes(item.id)
+        );
+        if (items.length === 0) return null;
+        const skillsLayoutClass =
+          skillsLayout === 'grid-col'
+            ? 'grid grid-cols-2 gap-x-6 gap-y-1.5'
+            : skillsLayout === 'grid-row'
+            ? 'grid grid-cols-1 gap-y-1.5'
+            : 'flex flex-wrap gap-x-6 gap-y-1';
+        return (
+          <div key="softSkills" className="w-full">
+            <h3
+              className="mb-1 border-b border-neutral-400 font-bold text-neutral-900"
+              style={headingStyle}
+            >
+              {sectionTitles.softSkills || 'Soft Skills'}
+            </h3>
+            <div data-testid="soft-skills-layout-container" className={skillsLayoutClass}>
+              {items.map((item) => (
+                <div
+                  key={item.id}
+                  data-resume-entry="true"
+                  className="text-neutral-800"
+                  style={{ lineHeight: lineHeightStyle }}
+                >
+                  {item.name && (
+                    <span className="font-semibold text-neutral-900">
+                      {item.name}:{' '}
+                    </span>
+                  )}
+                  <span>{item.keywords.join(', ')}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
       if (key === 'languages') {
         const items = resumeData.languages.filter(
           (item) => !hiddenItemIds.includes(item.id)
@@ -404,10 +452,6 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             item.score ||
             item.date ||
             item.website ||
-            item.listening ||
-            item.speaking ||
-            item.reading ||
-            item.writing ||
             item.description
         );
         return (
@@ -426,12 +470,6 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
               }
             >
               {items.map((item) => {
-                const skillBreakdown = [
-                  item.listening && `Listening: ${item.listening}`,
-                  item.speaking && `Speaking: ${item.speaking}`,
-                  item.reading && `Reading: ${item.reading}`,
-                  item.writing && `Writing: ${item.writing}`,
-                ].filter(Boolean);
                 const certText = [item.certificate, item.score]
                   .filter(Boolean)
                   .join(': ');
@@ -459,18 +497,6 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                             {item.name}
                           </span>
                         )}
-                        {item.level && (
-                          <span className="text-neutral-700">
-                            {' '}
-                            — {item.level}
-                          </span>
-                        )}
-                        {certText && (
-                          <span className="text-neutral-700">
-                            {' '}
-                            • {certText}
-                          </span>
-                        )}
                       </div>
                       {item.date && (
                         <span className="shrink-0 whitespace-nowrap text-neutral-700">
@@ -478,10 +504,8 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                         </span>
                       )}
                     </div>
-                    {skillBreakdown.length > 0 && (
-                      <div className="text-neutral-700">
-                        {skillBreakdown.join(' • ')}
-                      </div>
+                    {certText && (
+                      <div className="text-neutral-700">{certText}</div>
                     )}
                     {item.description && (
                       <div className="text-neutral-700">{item.description}</div>
@@ -722,6 +746,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
           minHeight: mode === 'preview' ? `${A4_HEIGHT_PX}px` : 'auto',
           fontSize: `${fontSize}px`,
           fontFamily: `"${fontFamily}", sans-serif`,
+          lineHeight: lineHeightStyle,
           padding:
             mode === 'preview'
               ? `${margin.VALUE}px`
@@ -756,7 +781,10 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
               {basics.name && (
                 <h1
                   className="font-bold tracking-tight text-neutral-900"
-                  style={{ fontSize: `${fontSize + 10}px`, lineHeight: 1.2 }}
+                  style={{
+                    fontSize: `${fontSize + 10}px`,
+                    lineHeight: `${Math.max(1.15, lineHeight * 0.22)}`,
+                  }}
                 >
                   {basics.name}
                 </h1>
@@ -764,21 +792,37 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
               {basics.title && (
                 <p
                   className="font-medium text-neutral-700"
-                  style={{ fontSize: `${fontSize + 2}px` }}
+                  style={{
+                    fontSize: `${fontSize + 2}px`,
+                    lineHeight: lineHeightStyle,
+                  }}
                 >
                   {basics.title}
                 </p>
               )}
 
-              {/* Contact Information (3 fixed lines) */}
+              {/* Contact Information (2 fixed lines: 1. Mail, SDT, Ngày sinh, Địa chỉ | 2. LinkedIn, Portfolio) */}
               <div
-                className={`mt-1.5 flex flex-col gap-y-0.5 w-full text-neutral-700 ${alignmentItemsClass}`}
-                style={{ fontSize: `${Math.max(10, fontSize - 1)}px` }}
+                className={`flex flex-col w-full text-neutral-700 ${alignmentItemsClass}`}
+                style={{
+                  fontSize: `${Math.max(10, fontSize - 1)}px`,
+                  lineHeight: lineHeightStyle,
+                  gap: `${Math.max(2, (lineHeight - 4) * 2.5 + 2)}px`,
+                  marginTop: `${Math.max(4, (lineHeight - 3) * 2)}px`,
+                }}
               >
-                {/* 1. Mail, SDT */}
-                {(basics.email || basics.phone?.value) && (
+                {/* 1. Mail, SDT, Ngày sinh, Địa chỉ */}
+                {(basics.email ||
+                  basics.phone?.value ||
+                  basics.dateOfBirth?.value ||
+                  basics.location?.value) && (
                   <div
-                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
+                    className={`flex flex-wrap items-center gap-x-3 w-full ${alignmentJustifyClass}`}
+                    style={{
+                      lineHeight: lineHeightStyle,
+                      minHeight: lineHeightStyle,
+                      rowGap: `${Math.max(2, (lineHeight - 4) * 2 + 2)}px`,
+                    }}
                   >
                     {basics.email && (
                       <span className="inline-flex items-center gap-1">
@@ -797,14 +841,6 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                         <span>{basics.phone.value}</span>
                       </span>
                     )}
-                  </div>
-                )}
-
-                {/* 2. Ngày sinh, Địa chỉ */}
-                {(basics.dateOfBirth?.value || basics.location?.value) && (
-                  <div
-                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
-                  >
                     {basics.dateOfBirth?.value && (
                       <span className="inline-flex items-center gap-1">
                         <Calendar className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
@@ -820,10 +856,15 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                   </div>
                 )}
 
-                {/* 3. LinkedIn, Portfolio */}
+                {/* 2. LinkedIn, Portfolio */}
                 {(basics.linkedin || basics.website) && (
                   <div
-                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
+                    className={`flex flex-wrap items-center gap-x-3 w-full ${alignmentJustifyClass}`}
+                    style={{
+                      lineHeight: lineHeightStyle,
+                      minHeight: lineHeightStyle,
+                      rowGap: `${Math.max(2, (lineHeight - 4) * 2 + 2)}px`,
+                    }}
                   >
                     {basics.linkedin && (
                       <span className="inline-flex items-center gap-1">
@@ -857,7 +898,12 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                 {/* Legacy Custom Fields fallback (if any persisted from previous imports) */}
                 {basics.customFields && basics.customFields.length > 0 && (
                   <div
-                    className={`flex flex-wrap items-center gap-x-3 gap-y-0.5 w-full ${alignmentJustifyClass}`}
+                    className={`flex flex-wrap items-center gap-x-3 w-full ${alignmentJustifyClass}`}
+                    style={{
+                      lineHeight: lineHeightStyle,
+                      minHeight: lineHeightStyle,
+                      rowGap: `${Math.max(2, (lineHeight - 4) * 2 + 2)}px`,
+                    }}
                   >
                     {basics.customFields.map((field) => {
                       if (!field.name && !field.value) return null;

@@ -70,7 +70,7 @@
 ## Phase 4 Deliverables Checklist
 
 - [x] **Google Gemini AI Service Adapter ([src/services/aiService.ts](../../src/services/aiService.ts))**:
-  - `callGeminiGenerateContent`: Connects to Google Gemini API (`POST https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, default model `gemini-2.5-flash`, configurable via `VITE_GEMINI_MODEL` and `VITE_GEMINI_API_KEY`, or optional proxy `VITE_AI_API_URL`) with support for `systemInstruction`, `responseMimeType: "application/json"`, and multimodal `inlineData` for image CV imports.
+  - `callGeminiInteraction`: Connects to Google Gemini Interactions API via official `@google/genai` SDK (`ai.interactions.create`, default model `gemini-3.8-flash`, configurable via `VITE_GEMINI_API_KEY` and `VITE_GEMINI_MODEL`) with support for `system_instruction`, `response_format: { type: "text", mime_type: "application/json" }`, and multimodal image inputs (`{ type: "image", data, mime_type }`) for image CV imports.
   - Zero hardcoded API keys in client source code; automatically falls back to deterministic local processors when no API key is configured.
   - Verified system prompts (`VERIFIED_PROMPTS`) extracted from the REA bundle audit:
     - `IMPROVE_SYSTEM` (`Mu` — `improveWriting`)
@@ -109,4 +109,26 @@
   - Hardened [`sanitizeSummaryHtml`](../../src/components/preview/ResumeSheet.tsx), [`normalizeHref`](../../src/components/preview/ResumeSheet.tsx), and profile photo URL checks against `<script>`, `<iframe>`, `<object>`, `<embed>`, inline `on*` event attributes, and `javascript:`/`vbscript:`/`data:text/html` URIs.
   - Verified zero hardcoded API keys in client bundles and zero `/upload-pdf` exfiltration calls.
 - [x] **Phase 5 Automated Tests**:
-  - [src/test/phase5.test.tsx](../../src/test/phase5.test.tsx): `5/5` Phase 5 QA suites passing (`21/21` total tests passing across `phase2.test.tsx`, `phase3.test.tsx`, `phase4.test.tsx`, and `phase5.test.tsx`).
+  - [src/test/phase5.test.tsx](../../src/test/phase5.test.tsx): `6/6` Phase 5 QA suites passing (`26/26` total tests passing across `phase2.test.tsx`, `phase3.test.tsx`, `phase4.test.tsx`, and `phase5.test.tsx`).
+
+### Languages Modal & AI Writing Enhancements
+- Removed the 4 skills assessment inputs (`listening`, `speaking`, `reading`, `writing`) from the Languages dialog in [src/components/modals/SectionDialogs.tsx](../../src/components/modals/SectionDialogs.tsx).
+- Added AI writing capabilities for the Language Description field:
+  - `generateLanguageDescription`: Auto-generates a concise, workplace-aligned description based on language name, certificate (e.g. TOEIC), and score (e.g. 510).
+  - `improveLanguageDescription`: Polishes and improves the clarity and impact of language proficiency descriptions.
+  - `customizeLanguageDescription`: Allows adjusting tone via presets (shorter, longer, more formal, more technical, more creative).
+- Added full bilingual support in [src/lib/i18n.ts](../../src/lib/i18n.ts) and verified unit tests in [src/test/phase4.test.tsx](../../src/test/phase4.test.tsx).
+
+### Full CV Translation & AI Response Language Control
+- Added full CV language selection (`cvLanguage`: `'en' | 'vi'`) in [src/types/resume.ts](../../src/types/resume.ts), [src/schemas/resumeSchemas.ts](../../src/schemas/resumeSchemas.ts), and [src/store/useResumeStore.ts](../../src/store/useResumeStore.ts).
+- Implemented `translateResume` in [src/services/aiService.ts](../../src/services/aiService.ts):
+  - Automatically translates all resume sections (Personal Info, Summaries, Experience, Projects, Education, Skills, Languages, Certifications, Awards, Volunteering, Interests, and Section Titles) between English and Vietnamese using Gemini AI with fallback to deterministic local dictionaries.
+  - Preserves HTML structure, person names, dates, contact details, and external links.
+- Set CV language as the default response language for AI features:
+  - `improveWriting`, `fixTypos`, `customizeWriting` in RichTextEditor respond in the CV language (Vietnamese or English).
+  - `analyzeResumeForRole` in AI CV Review & ATS Dashboard outputs all strengths, weaknesses, feedback, and recommendations in Vietnamese when CV language is Vietnamese.
+  - Interest and Language AI writing tools align with the selected CV language.
+- Added user controls:
+  - Header button: `[🌐 Dịch CV]` opening [TranslateCvDialog.tsx](../../src/components/modals/TranslateCvDialog.tsx).
+  - Controls drawer accordion item: "Ngôn ngữ CV & AI" in [ControlsSheet.tsx](../../src/components/controls/ControlsSheet.tsx).
+- All 28 tests passing (`28/28`) across `phase2.test.tsx`, `phase3.test.tsx`, `phase4.test.tsx`, and `phase5.test.tsx`.

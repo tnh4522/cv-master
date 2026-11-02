@@ -11,7 +11,7 @@ import {
   DEFAULT_PDF_SETTINGS,
   DEFAULT_RESUME_DATA,
 } from '@/store/useResumeStore';
-import { callGeminiGenerateContent } from '@/services/aiService';
+import { callGeminiInteraction } from '@/services/aiService';
 
 export const PDF_MIN_SIZE_BYTES = 1024; // 1 KB
 export const PDF_MAX_SIZE_BYTES = 20 * 1024 * 1024; // 20 MB
@@ -346,6 +346,7 @@ export function parseResumeTextLocally(text: string): {
     education,
     projects,
     skills,
+    softSkills: DEFAULT_RESUME_DATA.softSkills,
     languages,
   };
 
@@ -357,7 +358,7 @@ export function parseResumeTextLocally(text: string): {
 
 /**
  * Parses extracted PDF text into a structured `ResumeData` + `PdfSettings` (`Fu` in index-B9ESfVPA.js).
- * Uses Gemini AI (`callGeminiGenerateContent` in JSON mode) when `VITE_GEMINI_API_KEY` is configured;
+ * Uses Gemini AI (`callGeminiInteraction` in JSON mode) when `VITE_GEMINI_API_KEY` is configured;
  * otherwise uses `parseResumeTextLocally`.
  */
 export async function parsePdfResumeText(extractedText: string): Promise<{
@@ -370,13 +371,11 @@ export async function parsePdfResumeText(extractedText: string): Promise<{
     );
   }
 
-  const remoteContent = await callGeminiGenerateContent({
+  const remoteContent = await callGeminiInteraction({
     systemInstruction:
       'Extract the user resume text into a valid CVMaster JSON object containing basics, summary, experience, projects, education, skills, languages, certifications, awards, volunteering, interests, and sectionTitles.',
     userPrompt: extractedText,
-    temperature: 0.2,
     maxOutputTokens: 8096,
-    topP: 0.9,
     jsonMode: true,
   });
 
@@ -444,6 +443,9 @@ export function validateExtractedCvHeuristic(
   );
   const hasSkills = Boolean(
     data.skills?.some(
+      (s) => s.name?.trim() || (Array.isArray(s.keywords) && s.keywords.length > 0)
+    ) ||
+    data.softSkills?.some(
       (s) => s.name?.trim() || (Array.isArray(s.keywords) && s.keywords.length > 0)
     )
   );
@@ -514,14 +516,12 @@ export async function parseImageResumeFile(file: File): Promise<{
 
   const { base64Data, mimeType } = await readImageAsBase64(file);
 
-  const remoteContent = await callGeminiGenerateContent({
+  const remoteContent = await callGeminiInteraction({
     systemInstruction:
       'Extract all resume/CV information from the provided image into a valid CVMaster JSON object containing basics, summary, experience, projects, education, skills, languages, certifications, awards, volunteering, interests, and sectionTitles.',
     userPrompt:
       'Extract all resume/CV information from this image into a valid CVMaster JSON object.',
-    temperature: 0.2,
     maxOutputTokens: 8096,
-    topP: 1,
     jsonMode: true,
     inlineImage: {
       mimeType,

@@ -1,9 +1,10 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState } from 'react';
 import {
   AlignLeft,
   AlignCenter,
   AlignRight,
   RotateCcw,
+  Sparkles,
 } from 'lucide-react';
 import {
   Accordion,
@@ -25,6 +26,8 @@ import {
   Switch,
 } from '@/components/ui/primitives';
 import { FontPicker } from '@/components/controls/FontPicker';
+import { toast } from '@/components/ui/toast';
+import { TranslateCvDialog } from '@/components/modals/TranslateCvDialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import type { SkillsLayoutType } from '@/types/resume';
@@ -37,50 +40,133 @@ export interface ControlsSheetProps {
 }
 
 export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
-  const { resumeData, updateBasics, resetSectionOrder } = useResumeStore();
+  const { resumeData, setCvLanguage, updateBasics, resetSectionOrder } =
+    useResumeStore();
   const { pdfSettings, updatePdfSettings, resetPdfSettings } =
     usePdfSettingsStore();
   const { t } = useLanguage();
+  const [translateOpen, setTranslateOpen] = useState(false);
 
   const { alignment } = resumeData.basics;
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        side="right"
-        className="flex w-full flex-col p-0 sm:max-w-md"
-      >
-        <SheetHeader className="border-b border-border px-6 py-4">
-          <div className="flex items-center justify-between pr-6">
-            <div>
-              <SheetTitle>{t('controls.title')}</SheetTitle>
-              <SheetDescription>
-                {t('controls.description')}
-              </SheetDescription>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent
+          side="right"
+          className="flex w-full flex-col p-0 sm:max-w-md"
+        >
+          <SheetHeader className="border-b border-border px-6 py-4">
+            <div className="flex items-center justify-between pr-6">
+              <div>
+                <SheetTitle>{t('controls.title')}</SheetTitle>
+                <SheetDescription>
+                  {t('controls.description')}
+                </SheetDescription>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 text-xs"
+                onClick={() => {
+                  resetPdfSettings();
+                  resetSectionOrder();
+                }}
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                <span>{t('common.reset')}</span>
+              </Button>
             </div>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1.5 text-xs"
-              onClick={() => {
-                resetPdfSettings();
-                resetSectionOrder();
-              }}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              <span>{t('common.reset')}</span>
-            </Button>
-          </div>
-        </SheetHeader>
+          </SheetHeader>
 
-        <ScrollArea className="flex-1 px-6 py-4">
-          <Accordion
-            type="multiple"
-            defaultValue={['layout', 'sections', 'typography', 'page']}
-            className="w-full"
-          >
-            {/* 1. Layout & Alignment */}
+          <ScrollArea className="flex-1 px-6 py-4">
+            <Accordion
+              type="multiple"
+              defaultValue={['language', 'layout', 'sections', 'typography', 'page']}
+              className="w-full"
+            >
+              {/* 0. CV & AI Language */}
+              <AccordionItem value="language">
+                <AccordionTrigger className="text-sm font-semibold">
+                  {t('controls.cvLanguage')}
+                </AccordionTrigger>
+                <AccordionContent className="space-y-3 pt-2">
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-xs">
+                      <Label className="text-xs">
+                        {t('translate.selectTargetLang')}
+                      </Label>
+                      <span className="font-semibold text-primary">
+                        {resumeData.cvLanguage === 'vi'
+                          ? '🇻🇳 Tiếng Việt'
+                          : '🇺🇸 English'}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Button
+                        type="button"
+                        variant={
+                          resumeData.cvLanguage === 'vi'
+                            ? 'default'
+                            : 'outline'
+                        }
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs"
+                        onClick={() => {
+                          setCvLanguage('vi');
+                          toast({
+                            title: t('header.cvLanguagePopoverTitle'),
+                            description: t('header.switchedCvToViToast'),
+                          });
+                        }}
+                      >
+                        <span>🇻🇳</span>
+                        <span>Tiếng Việt</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        variant={
+                          resumeData.cvLanguage !== 'vi'
+                            ? 'default'
+                            : 'outline'
+                        }
+                        size="sm"
+                        className="h-8 gap-1.5 text-xs"
+                        onClick={() => {
+                          setCvLanguage('en');
+                          toast({
+                            title: t('header.cvLanguagePopoverTitle'),
+                            description: t('header.switchedCvToEnToast'),
+                          });
+                        }}
+                      >
+                        <span>🇺🇸</span>
+                        <span>English</span>
+                      </Button>
+                    </div>
+                    <p className="text-[11px] leading-relaxed text-muted-foreground">
+                      {t('controls.cvLanguageDesc')}
+                    </p>
+                    <p className="text-[10px] leading-relaxed text-muted-foreground/80 italic">
+                      {t('header.uiLanguagePopoverDesc')}
+                    </p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-1.5 text-xs font-medium text-primary border-primary/30 hover:bg-primary/5"
+                    onClick={() => setTranslateOpen(true)}
+                  >
+                    <Sparkles className="h-3.5 w-3.5" />
+                    <span>{t('controls.translateCvBtn')}</span>
+                  </Button>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* 1. Layout & Alignment */}
             <AccordionItem value="layout">
               <AccordionTrigger className="text-sm font-semibold">
                 {t('controls.layoutAndAlignment')}
@@ -308,5 +394,10 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
         </ScrollArea>
       </SheetContent>
     </Sheet>
+    <TranslateCvDialog
+      open={translateOpen}
+      onOpenChange={setTranslateOpen}
+    />
+  </>
   );
 }

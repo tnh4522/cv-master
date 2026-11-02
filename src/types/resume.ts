@@ -6,6 +6,7 @@ export type SectionKey =
   | "projects"
   | "education"
   | "skills"
+  | "softSkills"
   | "languages"
   | "certifications"
   | "awards"
@@ -44,11 +45,14 @@ export interface CustomFieldItem {
 
 export type CustomField = CustomFieldItem;
 
+export type SoftSkillItem = SkillItem;
+
 export type SectionItemUnion =
   | ExperienceItem
   | ProjectItem
   | EducationItem
   | SkillItem
+  | SoftSkillItem
   | LanguageItem
   | CertificationItem
   | AwardItem
@@ -132,7 +136,7 @@ export interface SkillItem {
 export interface LanguageItem {
   id: string;
   name: string;
-  level: string;
+  level?: string;
   certificate?: string;
   score?: string;
   date?: string;
@@ -182,12 +186,14 @@ export interface InterestItem {
 export type SectionTitlesMap = Record<SectionKey, string>;
 
 export interface ResumeData {
+  cvLanguage?: 'en' | 'vi';
   basics: BasicsData;
   summary: SummaryData;
   experience: ExperienceItem[];
   projects: ProjectItem[];
   education: EducationItem[];
   skills: SkillItem[];
+  softSkills: SkillItem[];
   languages: LanguageItem[];
   certifications: CertificationItem[];
   awards: AwardItem[];
@@ -196,6 +202,7 @@ export interface ResumeData {
   sectionTitles: SectionTitlesMap;
   pdfSettings?: PdfSettings;
   hiddenItemIds?: string[];
+  hiddenSections?: SectionKey[];
 }
 
 export interface MarginSetting {

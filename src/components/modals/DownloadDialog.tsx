@@ -30,7 +30,8 @@ export interface DownloadDialogProps {
 type ExportStatus = 'idle' | 'generating' | 'completed';
 
 export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
-  const { resumeData, sectionOrder, hiddenItemIds } = useResumeStore();
+  const { resumeData, sectionOrder, hiddenItemIds, hiddenSections } =
+    useResumeStore();
   const { pdfSettings } = usePdfSettingsStore();
   const { t } = useLanguage();
   const printSheetRef = useRef<HTMLDivElement | null>(null);
@@ -42,6 +43,7 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
         ...resumeData,
         sectionOrder,
         hiddenItemIds,
+        hiddenSections,
         pdfSettings,
       };
       const blob = new Blob([JSON.stringify(payload, null, 2)], {

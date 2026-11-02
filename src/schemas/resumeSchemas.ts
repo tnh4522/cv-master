@@ -66,9 +66,11 @@ export const skillItemSchema = z.object({
   keywords: z.array(z.string()).min(1, { message: "Keywords are required" }),
 });
 
+export const softSkillItemSchema = skillItemSchema;
+
 export const languageItemSchema = z.object({
   name: z.string().trim().min(1, { message: "Name is required" }),
-  level: z.string().min(1, { message: "Level is required" }),
+  level: z.string().optional().default(""),
   certificate: z.string().trim().optional(),
   score: z.string().trim().optional(),
   date: z.string().trim().optional(),
@@ -230,6 +232,7 @@ export const importSectionTitlesSchema = z.object({
   projects: z.string().optional(),
   education: z.string().optional(),
   skills: z.string().optional(),
+  softSkills: z.string().optional(),
   languages: z.string().optional(),
   certifications: z.string().optional(),
   awards: z.string().optional(),
@@ -265,12 +268,14 @@ export const importPdfSettingsSchema = z.object({
 });
 
 export const cvMasterJsonSchema = z.object({
+  cvLanguage: z.enum(['en', 'vi']).optional(),
   basics: importBasicsSchema,
   summary: importSummarySchema,
   experience: z.array(importExperienceSchema).optional().default([]),
   projects: z.array(importProjectSchema).optional().default([]),
   education: z.array(importEducationSchema).optional().default([]),
   skills: z.array(importSkillSchema).optional().default([]),
+  softSkills: z.array(importSkillSchema).optional().default([]),
   languages: z.array(importLanguageSchema).optional().default([]),
   certifications: z.array(z.any()).optional().default([]),
   awards: z.array(z.any()).optional().default([]),
@@ -279,4 +284,5 @@ export const cvMasterJsonSchema = z.object({
   sectionTitles: importSectionTitlesSchema.optional(),
   pdfSettings: importPdfSettingsSchema.optional(),
   hiddenItemIds: z.array(z.string()).optional().default([]),
+  hiddenSections: z.array(z.string()).optional().default([]),
 });

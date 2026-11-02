@@ -40,7 +40,7 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
   const navigate = useNavigate();
   const { resumeData } = useResumeStore();
   const { currentAnalysis, setAnalysis } = useReviewStore();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const form = useForm<AiReviewFormValues>({
@@ -58,6 +58,7 @@ export function AiReviewDialog({ open, onOpenChange }: AiReviewDialogProps) {
         resumeData,
         jobTitle: values.jobTitle,
         jobDescription: values.jobDescription,
+        language: resumeData.cvLanguage || 'en',
       });
       setAnalysis(analysis);
       toast({

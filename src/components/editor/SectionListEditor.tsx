@@ -37,19 +37,24 @@ function getItemSubtext(item: SectionItemUnion): string {
       ? `${item.degree} • ${item.studyField}`
       : item.degree;
   }
-  if ('level' in item && item.level) {
-    const parts = [item.level];
-    if (item.certificate) {
+  if ('certificate' in item || 'level' in item) {
+    const parts: string[] = [];
+    if ('level' in item && item.level) {
+      parts.push(item.level);
+    }
+    if ('certificate' in item && item.certificate) {
       parts.push(
         item.score ? `${item.certificate} (${item.score})` : item.certificate
       );
-    } else if (item.score) {
+    } else if ('score' in item && item.score) {
       parts.push(item.score);
     }
-    if (item.description) {
+    if ('description' in item && item.description) {
       parts.push(item.description);
     }
-    return parts.join(' • ');
+    if (parts.length > 0) {
+      return parts.join(' • ');
+    }
   }
   if ('description' in item && item.description) {
     if (
@@ -77,16 +82,19 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
   const {
     resumeData,
     hiddenItemIds,
+    hiddenSections,
     updateSectionTitle,
     deleteSectionItem,
     duplicateSectionItem,
     toggleHideItem,
+    toggleHideSection,
   } = useResumeStore();
   const { openDialog } = useDialog();
   const { t } = useLanguage();
 
   const items = (resumeData[sectionKey] || []) as SectionItemUnion[];
   const title = resumeData.sectionTitles[sectionKey] || sectionKey;
+  const isSectionHidden = hiddenSections.includes(sectionKey);
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(title);
@@ -156,7 +164,60 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
             </div>
           )}
         </div>
+
+        <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={`h-8 gap-1.5 px-2.5 text-xs ${
+              isSectionHidden
+                ? 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            tooltipContent={
+              isSectionHidden
+                ? t('common.showSectionTooltip')
+                : t('common.hideSectionTooltip')
+            }
+            onClick={() => toggleHideSection(sectionKey)}
+          >
+            {isSectionHidden ? (
+              <>
+                <EyeOff className="h-3.5 w-3.5" />
+                <span>{t('common.sectionHidden')}</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t('common.hideSection')}</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+
+      {isSectionHidden && (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => toggleHideSection(sectionKey)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              toggleHideSection(sectionKey);
+            }
+          }}
+          className="flex cursor-pointer items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
+        >
+          <div className="flex items-center gap-2">
+            <EyeOff className="h-3.5 w-3.5 shrink-0" />
+            <span>{t('common.sectionHiddenBanner')}</span>
+          </div>
+          <span className="ml-2 shrink-0 font-semibold underline underline-offset-2">
+            {t('common.showSection')}
+          </span>
+        </div>
+      )}
 
       {/* Section Items List */}
       <div className="space-y-2">

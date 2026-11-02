@@ -16,6 +16,7 @@ export const DEFAULT_SECTION_ORDER: SectionKey[] = [
   "projects",
   "education",
   "skills",
+  "softSkills",
   "languages",
   "certifications",
   "awards",
@@ -24,6 +25,7 @@ export const DEFAULT_SECTION_ORDER: SectionKey[] = [
 ];
 
 export const DEFAULT_RESUME_DATA: ResumeData = {
+  cvLanguage: "en",
   basics: {
     name: "John Doe",
     title: "Software Developer",
@@ -95,6 +97,13 @@ export const DEFAULT_RESUME_DATA: ResumeData = {
       keywords: ["Node.js", "PostgreSQL", "Docker", "Git", "CI/CD"],
     },
   ],
+  softSkills: [
+    {
+      id: "soft-skill-default-1",
+      name: "Interpersonal & Collaboration",
+      keywords: ["Communication", "Teamwork", "Problem Solving", "Time Management", "Adaptability"],
+    },
+  ],
   languages: [
     {
       id: "lang-default-1",
@@ -117,12 +126,41 @@ export const DEFAULT_RESUME_DATA: ResumeData = {
     projects: "Projects",
     education: "Education",
     skills: "Skills",
+    softSkills: "Soft Skills",
     languages: "Languages",
     certifications: "Certifications",
     awards: "Awards",
     volunteering: "Volunteering",
     interests: "Interests",
   },
+};
+
+export const DEFAULT_SECTION_TITLES_EN: Record<SectionKey, string> = {
+  summary: "Summary",
+  experience: "Experience",
+  projects: "Projects",
+  education: "Education",
+  skills: "Skills",
+  softSkills: "Soft Skills",
+  languages: "Languages",
+  certifications: "Certifications",
+  awards: "Awards",
+  volunteering: "Volunteering",
+  interests: "Interests",
+};
+
+export const DEFAULT_SECTION_TITLES_VI: Record<SectionKey, string> = {
+  summary: "Tóm tắt chuyên môn",
+  experience: "Kinh nghiệm làm việc",
+  projects: "Dự án",
+  education: "Học vấn",
+  skills: "Kỹ năng chuyên môn",
+  softSkills: "Kỹ năng mềm",
+  languages: "Ngoại ngữ",
+  certifications: "Chứng chỉ",
+  awards: "Giải thưởng",
+  volunteering: "Hoạt động tình nguyện",
+  interests: "Sở thích",
 };
 
 export const initialResumeData = DEFAULT_RESUME_DATA;
@@ -159,6 +197,7 @@ export function readLocalStorage<T>(key: string, fallback: T | null = null): T |
 const persistedResumeData = readLocalStorage<Partial<ResumeData>>("resumeData");
 const persistedSectionOrder = readLocalStorage<{ sectionOrder?: SectionKey[] }>("sectionOrder");
 const persistedHiddenIds = readLocalStorage<{ hiddenItemIds?: string[] }>("hiddenItemIds");
+const persistedHiddenSections = readLocalStorage<{ hiddenSections?: SectionKey[] }>("hiddenSections");
 
 function buildMergedSectionOrder(persisted?: SectionKey[] | null): SectionKey[] {
   if (!Array.isArray(persisted) || persisted.length === 0) {
@@ -183,7 +222,11 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
 
   return {
     ...DEFAULT_RESUME_DATA,
+    cvLanguage: persisted?.cvLanguage ?? DEFAULT_RESUME_DATA.cvLanguage ?? "en",
     ...(persisted || {}),
+    softSkills: Array.isArray(persisted?.softSkills)
+      ? persisted.softSkills
+      : DEFAULT_RESUME_DATA.softSkills,
     interests: Array.isArray(persisted?.interests)
       ? persisted.interests
       : DEFAULT_RESUME_DATA.interests,
@@ -209,6 +252,11 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
       customFields: persisted?.basics?.customFields ?? DEFAULT_RESUME_DATA.basics.customFields,
     },
     summary: mergedSummary,
+    hiddenSections:
+      persisted?.hiddenSections ??
+      (Array.isArray(persistedHiddenSections?.hiddenSections)
+        ? persistedHiddenSections.hiddenSections
+        : []),
     sectionTitles: {
       ...DEFAULT_RESUME_DATA.sectionTitles,
       ...(mergedSummary.sectionTitle ? { summary: mergedSummary.sectionTitle } : {}),
@@ -220,9 +268,14 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
 export interface ResumeStoreState {
   sectionOrder: SectionKey[];
   hiddenItemIds: string[];
+  hiddenSections: SectionKey[];
   resumeData: ResumeData;
   setData: (partial: Partial<ResumeData>) => void;
   setResumeData: (data: ResumeData) => void;
+  setCvLanguage: (
+    lang: "en" | "vi",
+    options?: { updateSectionTitles?: boolean }
+  ) => void;
   updateBasics: (patch: Partial<BasicsData>) => void;
   resetPhotoSettings: () => void;
   updateSummary: (content: string) => void;
@@ -237,12 +290,20 @@ export interface ResumeStoreState {
   toggleHiddenItem: (id: string) => void;
   toggleHideItem: (id: string) => void;
   setHiddenItemIds: (ids: string[]) => void;
+  toggleHideSection: (section: SectionKey) => void;
+  setHiddenSections: (sections: SectionKey[]) => void;
   resetResume: () => void;
 }
 
 export const useResumeStore = create<ResumeStoreState>((set, get) => ({
   sectionOrder: buildMergedSectionOrder(persistedSectionOrder?.sectionOrder),
   hiddenItemIds: persistedHiddenIds?.hiddenItemIds ?? [],
+  hiddenSections:
+    (Array.isArray(persistedHiddenSections?.hiddenSections)
+      ? persistedHiddenSections.hiddenSections
+      : Array.isArray(persistedResumeData?.hiddenSections)
+      ? (persistedResumeData.hiddenSections as SectionKey[])
+      : []) as SectionKey[],
   resumeData: buildMergedResumeData(persistedResumeData),
 
   setData: (partial) => {
@@ -259,15 +320,66 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
   setResumeData: (data) => {
     const merged = buildMergedResumeData(data);
     localStorage.setItem("resumeData", JSON.stringify(merged));
+    const updates: Partial<ResumeStoreState> = { resumeData: merged };
+
     if (Array.isArray(data?.hiddenItemIds)) {
       localStorage.setItem(
         "hiddenItemIds",
         JSON.stringify({ hiddenItemIds: data.hiddenItemIds })
       );
-      set({ resumeData: merged, hiddenItemIds: data.hiddenItemIds });
-    } else {
-      set({ resumeData: merged });
+      updates.hiddenItemIds = data.hiddenItemIds;
     }
+
+    if (Array.isArray(data?.hiddenSections)) {
+      localStorage.setItem(
+        "hiddenSections",
+        JSON.stringify({ hiddenSections: data.hiddenSections })
+      );
+      updates.hiddenSections = data.hiddenSections as SectionKey[];
+    }
+
+    set(updates as ResumeStoreState);
+  },
+
+  setCvLanguage: (cvLanguage, options) => {
+    set((state) => {
+      const shouldUpdateTitles = options?.updateSectionTitles ?? true;
+      let nextSectionTitles = { ...state.resumeData.sectionTitles };
+
+      if (shouldUpdateTitles) {
+        const targetTitles =
+          cvLanguage === "vi"
+            ? DEFAULT_SECTION_TITLES_VI
+            : DEFAULT_SECTION_TITLES_EN;
+        const sourceTitles =
+          cvLanguage === "vi"
+            ? DEFAULT_SECTION_TITLES_EN
+            : DEFAULT_SECTION_TITLES_VI;
+
+        const updated: Partial<Record<SectionKey, string>> = {};
+        for (const [key, val] of Object.entries(nextSectionTitles)) {
+          const sKey = key as SectionKey;
+          if (
+            !val ||
+            val === sourceTitles[sKey] ||
+            val === targetTitles[sKey]
+          ) {
+            updated[sKey] = targetTitles[sKey] || val;
+          } else {
+            updated[sKey] = val;
+          }
+        }
+        nextSectionTitles = { ...nextSectionTitles, ...updated };
+      }
+
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        cvLanguage,
+        sectionTitles: nextSectionTitles,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
   },
 
   updateBasics: (patch) => {
@@ -444,14 +556,32 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
     localStorage.setItem("hiddenItemIds", JSON.stringify({ hiddenItemIds: ids }));
   },
 
+  toggleHideSection: (section) => {
+    const current = get().hiddenSections;
+    const next = current.includes(section)
+      ? current.filter((key) => key !== section)
+      : [...current, section];
+    set({ hiddenSections: next });
+    localStorage.setItem("hiddenSections", JSON.stringify({ hiddenSections: next }));
+    get().setData({ hiddenSections: next });
+  },
+
+  setHiddenSections: (sections) => {
+    set({ hiddenSections: sections });
+    localStorage.setItem("hiddenSections", JSON.stringify({ hiddenSections: sections }));
+    get().setData({ hiddenSections: sections });
+  },
+
   resetResume: () => {
     localStorage.removeItem("resumeData");
     localStorage.removeItem("sectionOrder");
     localStorage.removeItem("hiddenItemIds");
+    localStorage.removeItem("hiddenSections");
     set({
       resumeData: DEFAULT_RESUME_DATA,
       sectionOrder: DEFAULT_SECTION_ORDER,
       hiddenItemIds: [],
+      hiddenSections: [],
     });
   },
 }));

@@ -17,6 +17,7 @@ import {
   fixTypos,
   customizeWriting,
   analyzeResumeForRole,
+  translateResume,
 } from '@/services/aiService';
 import { parsePdfResumeText } from '@/services/importService';
 import { fetchGoogleFontsByCategory } from '@/services/fontsService';
@@ -180,6 +181,7 @@ describe('Phase 5 Quality Assurance — Workflows, Responsive UI, Persistence, P
     expect(screen.getByText('Best Systems Paper')).toBeInTheDocument();
     expect(screen.getByText('Code.org')).toBeInTheDocument();
     expect(screen.getByText('Photography')).toBeInTheDocument();
+    expect(screen.getByText('IELTS: 8.0')).toBeInTheDocument();
     expect(screen.getByText('GitHub')).toBeInTheDocument();
     expect(screen.getByText(/Citizenship: US Citizen/)).toBeInTheDocument();
 
@@ -212,6 +214,35 @@ describe('Phase 5 Quality Assurance — Workflows, Responsive UI, Persistence, P
     );
 
     unmount();
+  });
+
+  it('supports full lifecycle, rendering, and translations for the softSkills (Kỹ năng mềm) section', async () => {
+    const store = useResumeStore.getState();
+
+    // 1. Add a distinctive soft skill item
+    store.addSectionItem('softSkills', {
+      id: 'soft-qa-1',
+      name: 'Interpersonal & Leadership',
+      keywords: ['Conflict Resolution', 'Emotional Intelligence'],
+    });
+
+    const updated = useResumeStore.getState().resumeData;
+    expect(updated.softSkills.some((i) => i.id === 'soft-qa-1')).toBe(true);
+    expect(updated.sectionTitles.softSkills).toBe('Soft Skills');
+
+    // 2. Render in ResumeSheet
+    const { unmount } = render(<ResumeSheet mode="preview" />);
+    expect(screen.getByText('Soft Skills')).toBeInTheDocument();
+    expect(screen.getByText(/Conflict Resolution, Emotional Intelligence/)).toBeInTheDocument();
+    unmount();
+
+    // 3. Translate to Vietnamese
+    const viResume = await translateResume(updated, 'vi');
+    expect(viResume.sectionTitles.softSkills).toBe('Kỹ năng mềm');
+
+    // 4. Translate back to English
+    const enResume = await translateResume(viResume, 'en');
+    expect(enResume.sectionTitles.softSkills).toBe('Soft Skills');
   });
 
   it('adapts UI layout across desktop (>= 1024px) and mobile (< 1024px) viewports and persists theme state', () => {

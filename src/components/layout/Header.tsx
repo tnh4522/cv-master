@@ -5,6 +5,7 @@ import {
   Download,
   Upload,
   RotateCcw,
+  Languages,
 } from 'lucide-react';
 import {
   Button,
@@ -14,6 +15,8 @@ import { toast } from '@/components/ui/toast';
 import { DownloadDialog } from '@/components/modals/DownloadDialog';
 import { ImportDialog } from '@/components/modals/ImportDialog';
 import { AiReviewDialog } from '@/components/modals/AiReviewDialog';
+import { TranslateCvDialog } from '@/components/modals/TranslateCvDialog';
+import { CvLanguageSelector } from '@/components/layout/CvLanguageSelector';
 import { LanguageSwitcher, useLanguage } from '@/context/LanguageContext';
 import {
   usePdfSettingsStore,
@@ -30,6 +33,7 @@ export function Header() {
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [aiReviewOpen, setAiReviewOpen] = useState(false);
+  const [translateOpen, setTranslateOpen] = useState(false);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
 
   const handleResetAll = () => {
@@ -94,6 +98,22 @@ export function Header() {
             <span className="hidden sm:inline">{t('header.import')}</span>
           </Button>
 
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 px-2.5 text-xs font-medium text-primary hover:bg-primary/5"
+            tooltipContent={t('header.translateCvTooltip')}
+            onClick={() => setTranslateOpen(true)}
+          >
+            <Languages className="h-3.5 w-3.5" />
+            <span className="hidden md:inline">{t('header.translateCv')}</span>
+          </Button>
+
+          <CvLanguageSelector
+            onOpenTranslateDialog={() => setTranslateOpen(true)}
+          />
+
           <LanguageSwitcher />
 
           <Button
@@ -112,6 +132,7 @@ export function Header() {
       <DownloadDialog open={downloadOpen} onOpenChange={setDownloadOpen} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <AiReviewDialog open={aiReviewOpen} onOpenChange={setAiReviewOpen} />
+      <TranslateCvDialog open={translateOpen} onOpenChange={setTranslateOpen} />
 
       <DeleteConfirmDialog
         open={confirmResetOpen}

@@ -912,6 +912,181 @@ function SkillsDialog() {
 }
 
 /* ============================================================================
+ * 4b. SoftSkillsDialog
+ * ========================================================================== */
+function SoftSkillsDialog() {
+  const { activeSection, mode, activeItem, closeDialog } = useDialog();
+  const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t, language } = useLanguage();
+  const open = activeSection === 'softSkills' && mode !== null;
+
+  const form = useForm<SkillFormValues>({
+    resolver: zodResolver(skillItemSchema),
+    defaultValues: {
+      name: '',
+      keywords: [],
+    },
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    if (mode === 'edit' && activeItem) {
+      const item = activeItem as SkillItem;
+      form.reset({
+        name: item.name || '',
+        keywords: item.keywords || [],
+      });
+    } else {
+      form.reset({
+        name: '',
+        keywords: [],
+      });
+    }
+  }, [open, mode, activeItem, form]);
+
+  const onSubmit = (values: SkillFormValues) => {
+    const id =
+      mode === 'edit' && activeItem ? activeItem.id : `soft-skill-${Date.now()}`;
+    const payload: SkillItem = {
+      id,
+      name: values.name,
+      keywords: values.keywords,
+    };
+    if (mode === 'edit') {
+      updateSectionItem('softSkills', payload);
+    } else {
+      addSectionItem('softSkills', payload);
+    }
+    closeDialog();
+  };
+
+  const quickSuggestions =
+    language === 'vi'
+      ? [
+          'Giao tiếp',
+          'Làm việc nhóm',
+          'Giải quyết vấn đề',
+          'Quản lý thời gian',
+          'Tư duy phản biện',
+          'Khả năng thích ứng',
+          'Thuyết trình',
+          'Lãnh đạo',
+          'Đàm phán',
+          'Sáng tạo',
+        ]
+      : [
+          'Communication',
+          'Teamwork',
+          'Problem Solving',
+          'Time Management',
+          'Critical Thinking',
+          'Adaptability',
+          'Presentation',
+          'Leadership',
+          'Negotiation',
+          'Creativity',
+        ];
+
+  const handleAddSuggestion = (suggestion: string) => {
+    const current = form.getValues('keywords') || [];
+    if (!current.includes(suggestion)) {
+      form.setValue('keywords', [...current, suggestion], {
+        shouldValidate: true,
+      });
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(v) => !v && closeDialog()}>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>
+            {mode === 'edit'
+              ? t('dialogs.softSkills.editTitle')
+              : t('dialogs.softSkills.addTitle')}
+          </DialogTitle>
+        </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('dialogs.softSkills.categoryName')}</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder={t('dialogs.softSkills.categoryPlaceholder')}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="keywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('dialogs.softSkills.keywords')}</FormLabel>
+                  <FormControl>
+                    <KeywordListInput
+                      keywords={field.value || []}
+                      onChange={field.onChange}
+                      placeholder={t('dialogs.softSkillKeywordPlaceholder')}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="space-y-1.5 pt-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                {t('dialogs.softSkills.quickSuggestions')}:
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {quickSuggestions.map((item) => {
+                  const currentKeywords = form.watch('keywords') || [];
+                  const isSelected = currentKeywords.includes(item);
+                  return (
+                    <button
+                      key={item}
+                      type="button"
+                      disabled={isSelected}
+                      onClick={() => handleAddSuggestion(item)}
+                      className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs transition-colors ${
+                        isSelected
+                          ? 'border-transparent bg-muted text-muted-foreground opacity-50 cursor-not-allowed'
+                          : 'border-border bg-card text-foreground hover:border-primary/60 hover:bg-primary/5 hover:text-primary cursor-pointer'
+                      }`}
+                    >
+                      + {item}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit">
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+
+/* ============================================================================
  * 5. LanguagesDialog
  * ========================================================================== */
 function LanguagesDialog() {
@@ -929,10 +1104,6 @@ function LanguagesDialog() {
       score: '',
       date: '',
       website: '',
-      listening: '',
-      speaking: '',
-      reading: '',
-      writing: '',
       description: '',
     },
   });
@@ -948,10 +1119,6 @@ function LanguagesDialog() {
         score: item.score || '',
         date: item.date || '',
         website: item.website || '',
-        listening: item.listening || '',
-        speaking: item.speaking || '',
-        reading: item.reading || '',
-        writing: item.writing || '',
         description: item.description || '',
       });
     } else {
@@ -962,10 +1129,6 @@ function LanguagesDialog() {
         score: '',
         date: '',
         website: '',
-        listening: '',
-        speaking: '',
-        reading: '',
-        writing: '',
         description: '',
       });
     }
@@ -982,10 +1145,6 @@ function LanguagesDialog() {
       score: values.score || '',
       date: values.date || '',
       website: values.website || '',
-      listening: values.listening || '',
-      speaking: values.speaking || '',
-      reading: values.reading || '',
-      writing: values.writing || '',
       description: values.description || '',
     };
     if (mode === 'edit') {
@@ -1126,92 +1285,6 @@ function LanguagesDialog() {
               />
             </div>
 
-            <div className="space-y-2 rounded-md border border-border/70 bg-muted/20 p-3">
-              <p className="text-xs font-semibold text-muted-foreground">
-                {t('dialogs.languages.fourSkillsTitle')}
-              </p>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                <FormField
-                  control={form.control}
-                  name="listening"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">
-                        {t('dialogs.languages.listening')}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. 8.5 / Fluent"
-                          className="h-8 text-xs"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="speaking"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">
-                        {t('dialogs.languages.speaking')}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. 7.5 / Fluent"
-                          className="h-8 text-xs"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="reading"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">
-                        {t('dialogs.languages.reading')}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. 8.5 / Advanced"
-                          className="h-8 text-xs"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="writing"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-xs">
-                        {t('dialogs.languages.writing')}
-                      </FormLabel>
-                      <FormControl>
-                        <Input
-                          placeholder="e.g. 7.5 / Advanced"
-                          className="h-8 text-xs"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </div>
 
             <FormField
               control={form.control}
@@ -1867,6 +1940,7 @@ export function SectionDialogsHost() {
       <ProjectsDialog />
       <EducationDialog />
       <SkillsDialog />
+      <SoftSkillsDialog />
       <LanguagesDialog />
       <CertificationsDialog />
       <AwardsDialog />

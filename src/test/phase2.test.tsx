@@ -269,4 +269,51 @@ describe('Phase 2 Core Implementation — Stores, Schemas, Editor & Preview', ()
     expect(useResumeStore.getState().resumeData.basics.dateOfBirth?.value).toBe('15/01/1995');
     expect(screen.getByText('15/01/1995')).toBeInTheDocument();
   });
+
+  it('dynamically applies lineHeight to the entire ResumeSheet and personal info contact header', () => {
+    const { container, rerender } = render(<ResumeSheet mode="preview" />);
+    const sheetEl = container.querySelector('[data-testid="resume-sheet"]') as HTMLElement;
+    expect(sheetEl.style.lineHeight).toBe('1.25rem'); // default lineHeight = 5 (5 * 0.25rem = 1.25rem)
+
+    // Update lineHeight to 8 (2.00rem)
+    act(() => {
+      usePdfSettingsStore.getState().updatePdfSettings({ lineHeight: 8 });
+    });
+    rerender(<ResumeSheet mode="preview" />);
+    expect(sheetEl.style.lineHeight).toBe('2rem');
+
+    // Reset back to default
+    act(() => {
+      usePdfSettingsStore.getState().updatePdfSettings({ lineHeight: 5 });
+    });
+  });
+
+  it('supports hiding an entire section and omits it from ResumeSheet preview', () => {
+    const store = useResumeStore.getState();
+    const { rerender } = render(<ResumeSheet mode="preview" />);
+
+    // Initially, summary and experience are visible
+    expect(screen.getByText(store.resumeData.sectionTitles.experience)).toBeInTheDocument();
+
+    // Toggle hide 'experience' section
+    act(() => {
+      store.toggleHideSection('experience');
+    });
+
+    expect(useResumeStore.getState().hiddenSections).toContain('experience');
+    const rawHidden = JSON.parse(localStorage.getItem('hiddenSections') || '{}');
+    expect(rawHidden.hiddenSections).toContain('experience');
+
+    rerender(<ResumeSheet mode="preview" />);
+    // The section heading and items should not be rendered
+    expect(screen.queryByText(store.resumeData.sectionTitles.experience)).not.toBeInTheDocument();
+
+    // Unhide 'experience' section
+    act(() => {
+      store.toggleHideSection('experience');
+    });
+    expect(useResumeStore.getState().hiddenSections).not.toContain('experience');
+    rerender(<ResumeSheet mode="preview" />);
+    expect(screen.getByText(store.resumeData.sectionTitles.experience)).toBeInTheDocument();
+  });
 });

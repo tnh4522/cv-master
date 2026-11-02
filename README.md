@@ -30,15 +30,16 @@
 ## 🚀 Tính năng nổi bật
 
 ### 1. 📝 Quản lý nội dung CV toàn diện
-- **Thông tin cá nhân (Personal Information)**: Họ tên, chức danh nghề nghiệp, và thông tin liên hệ được tối ưu chuẩn mực theo 3 dòng cố định: (1) Email & Số điện thoại, (2) Ngày sinh & Địa chỉ, (3) LinkedIn & Portfolio/Website.
+- **Thông tin cá nhân (Personal Information)**: Họ tên, chức danh nghề nghiệp, và thông tin liên hệ được tối ưu chuẩn mực theo 2 dòng cố định: (1) Email, Số điện thoại, Ngày sinh, Địa chỉ; (2) LinkedIn, Portfolio/Website.
 - **Ảnh đại diện linh hoạt**: Tải ảnh trực tiếp (`PNG/JPG/WebP <= 2MB`) hoặc nhập URL, tùy chỉnh kích thước (`size: 40px – 200px`), bo tròn góc (`border-radius: 0 – 100px`), bật/tắt hiển thị trên bản in.
 - **Tóm tắt chuyên môn (Summary)**: Bộ soạn thảo Rich Text (TipTap) hỗ trợ định dạng danh sách, in đậm, in nghiêng, liên kết, và các công cụ AI.
 - **8+ danh mục động**:
   - 💼 **Work Experience (Kinh nghiệm làm việc)**: Tên công ty, vị trí, khoảng thời gian, địa điểm, hình thức làm việc, website, mô tả chi tiết.
   - 🚀 **Projects (Dự án nổi bật)**: Tên dự án, mô tả ngắn, năm hoàn thành, liên kết demo/repo, công nghệ/từ khóa (hỗ trợ kéo-thả sắp xếp chip tag).
   - 🎓 **Education (Học vấn)**: Trường/viện, bằng cấp, chuyên ngành, thời gian đào tạo, thành tích.
-  - ⚡ **Technical Skills (Kỹ năng kỹ thuật)**: Nhóm kỹ năng, từ khóa/tags kéo-thả sắp xếp, tùy biến 3 dạng hiển thị (Inline, 2 cột Grid, 1 cột Dọc).
-  - 🌐 **Languages (Ngoại ngữ)**: Cấp độ thành thạo, chứng chỉ (IELTS, TOEIC, JLPT...), điểm số, ngày cấp, link xác thực chứng chỉ, đánh giá chi tiết 4 kỹ năng (Nghe, Nói, Đọc, Viết) và ghi chú.
+  - ⚡ **Technical Skills (Kỹ năng chuyên môn / Kỹ thuật)**: Nhóm kỹ năng, từ khóa/tags kéo-thả sắp xếp, tùy biến 3 dạng hiển thị (Inline, 2 cột Grid, 1 cột Dọc).
+  - 🤝 **Soft Skills (Kỹ năng mềm)**: Kỹ năng giao tiếp, làm việc nhóm, giải quyết vấn đề, quản lý thời gian... với gợi ý nhanh và kéo-thả sắp xếp chip tag.
+  - 🌐 **Languages (Ngoại ngữ)**: Cấp độ thành thạo, chứng chỉ (IELTS, TOEIC, JLPT...), điểm số, ngày cấp, link xác thực chứng chỉ và ghi chú.
   - 📜 **Certifications (Chứng chỉ nghề nghiệp)**: Tên chứng chỉ, đơn vị cấp, ngày cấp, mã/đường dẫn xác thực.
   - 🏆 **Awards (Giải thưởng & Danh hiệu)**: Tên giải thưởng, tổ chức trao thưởng, thời gian, mô tả.
   - 🤝 **Volunteering (Hoạt động cộng đồng)**: Tổ chức, vai trò, mốc thời gian, địa điểm, đóng góp.
@@ -96,7 +97,7 @@
 | **Soạn thảo Rich Text** | [TipTap 2](https://tiptap.dev/) (Document, Paragraph, Text, Lists, Link, History) |
 | **Kéo thả (DnD)** | [@dnd-kit/core](https://dndkit.com/), `@dnd-kit/sortable` |
 | **Canvas & Preview** | [react-zoom-pan-pinch](https://github.com/BetterTyped/react-zoom-pan-pinch) |
-| **Trí tuệ nhân tạo (AI)** | [Google Gemini API](https://ai.google.dev/) (`gemini-2.5-flash` / `gemini-1.5-flash`) |
+| **Trí tuệ nhân tạo (AI)** | [Google GenAI SDK (`@google/genai`)](https://ai.google.dev/) — Interactions API (`gemini-3.8-flash` / `gemini-3.5-flash-lite`) |
 | **Kiểm thử (Testing)** | [Vitest](https://vitest.dev/), [@testing-library/react](https://testing-library.com/), [jsdom](https://github.com/jsdom/jsdom) |
 
 ---
@@ -124,7 +125,7 @@
    Tạo file `.env.local` ở thư mục gốc nếu bạn muốn sử dụng tính năng Gemini AI trực tuyến:
    ```env
    VITE_GEMINI_API_KEY=your_google_gemini_api_key_here
-   VITE_GEMINI_MODEL=gemini-2.5-flash
+   VITE_GEMINI_MODEL=gemini-3.8-flash
    ```
    > *Lưu ý: Nếu không cấu hình khóa API Gemini, ứng dụng vẫn hoạt động 100% trơn tru nhờ bộ xử lý dữ liệu và thuật toán phân tích cục bộ (Local Fallback Adapters).*
 
@@ -180,8 +181,8 @@ Bạn có thể tạo file `.env.local` để tinh chỉnh các tham số sau:
 
 | Tên biến | Bắt buộc | Mặc định | Mô tả |
 |---|:---:|---|---|
-| `VITE_GEMINI_API_KEY` | Không | `undefined` | Khóa API Google Gemini cho các tính năng AI |
-| `VITE_GEMINI_MODEL` | Không | `gemini-2.5-flash` | Tên model Gemini muốn sử dụng |
+| `VITE_GEMINI_API_KEY` | Không | `undefined` | Khóa API Google Gemini cho các tính năng AI (`@google/genai` Interactions API) |
+| `VITE_GEMINI_MODEL` | Không | `gemini-3.8-flash` | Tên model Gemini muốn sử dụng |
 | `VITE_GOOGLE_FONTS_API_KEY` | Không | `undefined` | Khóa API để lấy danh sách font động từ Google Fonts |
 | `VITE_PDF_API_URL` | Không | `undefined` | Endpoint dịch vụ render PDF server-side (mặc định dùng print trình duyệt) |
 | `VITE_PHOTO_UPLOAD_URL` | Không | `undefined` | Endpoint tải ảnh đại diện lên cloud (mặc định nén Data URL) |

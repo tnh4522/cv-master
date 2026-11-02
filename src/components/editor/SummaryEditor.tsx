@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pencil, Check } from 'lucide-react';
+import { Pencil, Check, Eye, EyeOff } from 'lucide-react';
 import { Button, Input, Separator } from '@/components/ui/primitives';
 import { SectionIcon } from '@/components/icons/CustomIcons';
 import { RichTextEditor } from '@/components/editor/RichTextEditor';
@@ -7,8 +7,15 @@ import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 
 export function SummaryEditor() {
-  const { resumeData, updateSummary, updateSectionTitle } = useResumeStore();
+  const {
+    resumeData,
+    hiddenSections,
+    updateSummary,
+    updateSectionTitle,
+    toggleHideSection,
+  } = useResumeStore();
   const { t } = useLanguage();
+  const isSectionHidden = hiddenSections.includes('summary');
   const currentContent = resumeData.summary.content;
   const currentTitle =
     resumeData.sectionTitles.summary ||
@@ -78,7 +85,60 @@ export function SummaryEditor() {
             </div>
           )}
         </div>
+
+        <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className={`h-8 gap-1.5 px-2.5 text-xs ${
+              isSectionHidden
+                ? 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+            tooltipContent={
+              isSectionHidden
+                ? t('common.showSectionTooltip')
+                : t('common.hideSectionTooltip')
+            }
+            onClick={() => toggleHideSection('summary')}
+          >
+            {isSectionHidden ? (
+              <>
+                <EyeOff className="h-3.5 w-3.5" />
+                <span>{t('common.sectionHidden')}</span>
+              </>
+            ) : (
+              <>
+                <Eye className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{t('common.hideSection')}</span>
+              </>
+            )}
+          </Button>
+        </div>
       </div>
+
+      {isSectionHidden && (
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => toggleHideSection('summary')}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              toggleHideSection('summary');
+            }
+          }}
+          className="flex cursor-pointer items-center justify-between rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 transition-colors hover:bg-amber-500/20 dark:text-amber-400"
+        >
+          <div className="flex items-center gap-2">
+            <EyeOff className="h-3.5 w-3.5 shrink-0" />
+            <span>{t('common.sectionHiddenBanner')}</span>
+          </div>
+          <span className="ml-2 shrink-0 font-semibold underline underline-offset-2">
+            {t('common.showSection')}
+          </span>
+        </div>
+      )}
 
       <RichTextEditor
         content={currentContent}

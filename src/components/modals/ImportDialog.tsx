@@ -44,8 +44,12 @@ export interface ImportDialogProps {
 }
 
 export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
-  const { setResumeData, setHiddenItemIds, updateSectionOrder } =
-    useResumeStore();
+  const {
+    setResumeData,
+    setHiddenItemIds,
+    setHiddenSections,
+    updateSectionOrder,
+  } = useResumeStore();
   const { updatePdfSettings } = usePdfSettingsStore();
   const { t } = useLanguage();
 
@@ -63,6 +67,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
     resumeData: ResumeData;
     pdfSettings: PdfSettings;
     hiddenItemIds: string[];
+    hiddenSections?: SectionKey[];
     sectionOrder?: SectionKey[];
   } | null>(null);
 
@@ -124,11 +129,16 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
               parsedJson.hiddenItemIds ||
               parsedJson.resumeData?.hiddenItemIds ||
               [],
+            hiddenSections:
+              parsedJson.hiddenSections ||
+              parsedJson.resumeData?.hiddenSections ||
+              [],
           }
         : {
             ...parsedJson,
             pdfSettings: parsedJson.pdfSettings || currentPdfSettings,
             hiddenItemIds: parsedJson.hiddenItemIds || [],
+            hiddenSections: parsedJson.hiddenSections || [],
           };
 
       const validation = cvMasterJsonSchema.safeParse(candidate);
@@ -147,6 +157,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
         pdfSettings: (validatedData.pdfSettings ||
           currentPdfSettings) as PdfSettings,
         hiddenItemIds: validatedData.hiddenItemIds || [],
+        hiddenSections: (validatedData.hiddenSections || []) as SectionKey[],
         sectionOrder: Array.isArray(parsedJson.sectionOrder)
           ? (parsedJson.sectionOrder as SectionKey[])
           : undefined,
@@ -269,6 +280,9 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
         setResumeData(validatedJsonPayload.resumeData);
         updatePdfSettings(validatedJsonPayload.pdfSettings);
         setHiddenItemIds(validatedJsonPayload.hiddenItemIds);
+        if (validatedJsonPayload.hiddenSections) {
+          setHiddenSections(validatedJsonPayload.hiddenSections);
+        }
         if (validatedJsonPayload.sectionOrder) {
           updateSectionOrder(validatedJsonPayload.sectionOrder);
         }
