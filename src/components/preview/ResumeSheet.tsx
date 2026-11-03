@@ -763,6 +763,9 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                 ? 'flex-row-reverse items-center justify-between text-right'
                 : 'flex-row items-center justify-between text-left'
             }`}
+            style={{
+              marginBottom: `${Math.max(12, verticalSpacing * 6)}px`,
+            }}
           >
             {showPhoto && (
               <img
