@@ -371,7 +371,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             ? 'grid grid-cols-2 gap-x-6 gap-y-1.5'
             : skillsLayout === 'grid-row'
             ? 'grid grid-cols-1 gap-y-1.5'
-            : 'flex flex-wrap gap-x-6 gap-y-1';
+            : 'flex flex-wrap gap-x-6 gap-y-1.5';
         return (
           <div key="skills" className="w-full">
             <h3
@@ -385,7 +385,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                 <div
                   key={item.id}
                   data-resume-entry="true"
-                  className="text-neutral-800"
+                  className="w-full text-neutral-800"
                   style={{ lineHeight: lineHeightStyle }}
                 >
                   {item.name && (
@@ -411,7 +411,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
             ? 'grid grid-cols-2 gap-x-6 gap-y-1.5'
             : skillsLayout === 'grid-row'
             ? 'grid grid-cols-1 gap-y-1.5'
-            : 'flex flex-wrap gap-x-6 gap-y-1';
+            : 'flex flex-wrap gap-x-6 gap-y-1.5';
         return (
           <div key="softSkills" className="w-full">
             <h3
@@ -425,7 +425,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                 <div
                   key={item.id}
                   data-resume-entry="true"
-                  className="text-neutral-800"
+                  className="w-full text-neutral-800"
                   style={{ lineHeight: lineHeightStyle }}
                 >
                   {item.name && (
