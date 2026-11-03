@@ -288,6 +288,8 @@ export interface ResumeStoreState {
   updateSectionItem: (section: ListSectionKey, item: SectionItemUnion, index?: number) => void;
   deleteSectionItem: (section: ListSectionKey, id: string) => void;
   duplicateSectionItem: (section: ListSectionKey, id: string) => void;
+  reorderSectionItems: (section: ListSectionKey, items: SectionItemUnion[]) => void;
+  moveSectionItem: (section: ListSectionKey, fromIndex: number, toIndex: number) => void;
   setSectionOrder: (order: SectionKey[]) => void;
   updateSectionOrder: (order: SectionKey[]) => void;
   resetSectionOrder: () => void;
@@ -525,6 +527,41 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
       const nextResumeData: ResumeData = {
         ...state.resumeData,
         [section]: nextList,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  reorderSectionItems: (section, items) => {
+    set((state) => {
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        [section]: items,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  moveSectionItem: (section, fromIndex, toIndex) => {
+    set((state) => {
+      const list = [...((state.resumeData[section] || []) as SectionItemUnion[])];
+      if (
+        fromIndex < 0 ||
+        fromIndex >= list.length ||
+        toIndex < 0 ||
+        toIndex >= list.length ||
+        fromIndex === toIndex
+      ) {
+        return state;
+      }
+      const moved = list.slice();
+      const [movedItem] = moved.splice(fromIndex, 1);
+      moved.splice(toIndex, 0, movedItem);
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        [section]: moved,
       };
       localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
       return { resumeData: nextResumeData };
