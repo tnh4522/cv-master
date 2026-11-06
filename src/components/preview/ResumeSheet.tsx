@@ -3,22 +3,11 @@ import { Mail, Globe, Phone, MapPin, Calendar } from 'lucide-react';
 import { CustomFieldIcon, LinkedInIcon } from '@/components/icons/CustomIcons';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import { loadFontStylesheet } from '@/services/fontsService';
-import { A4_HEIGHT_PX, A4_WIDTH_PX } from '@/lib/utils';
+import { A4_HEIGHT_PX, A4_WIDTH_PX, resolveMargins } from '@/lib/utils';
 import type { SectionKey } from '@/types/resume';
 import { useLanguage } from '@/context/LanguageContext';
 
-const VERTICAL_SPACING_CLASSES: Record<number, string> = {
-  1: 'space-y-1',
-  2: 'space-y-2',
-  3: 'space-y-3',
-  4: 'space-y-4',
-  5: 'space-y-5',
-  6: 'space-y-6',
-  7: 'space-y-7',
-  8: 'space-y-8',
-  9: 'space-y-9',
-  10: 'space-y-10',
-};
+const SECTION_GAP_BASE = 2;
 
 export function sanitizeSummaryHtml(html?: string): string {
   if (!html) return '';
@@ -82,8 +71,8 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
 
     const { basics, sectionTitles } = resumeData;
     const lineHeightStyle = `${lineHeight * 0.25}rem`;
-    const spacingClass =
-      VERTICAL_SPACING_CLASSES[verticalSpacing] || 'space-y-2';
+    // Gap between sections: slider value x 4px plus a small base for breathing room.
+    const sectionGapPx = (verticalSpacing + SECTION_GAP_BASE) * 4;
 
     useEffect(() => {
       if (fontFamily) {
@@ -116,7 +105,20 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
       }
     };
 
-    const totalPages = Math.max(1, Math.ceil(sheetHeight / A4_HEIGHT_PX));
+    const margins = resolveMargins(margin);
+    // Each printed page only has (A4 height - top - bottom) of usable content area.
+    const pageContentHeight = Math.max(
+      1,
+      A4_HEIGHT_PX - margins.top - margins.bottom
+    );
+    const contentHeight = Math.max(
+      0,
+      sheetHeight - margins.top - margins.bottom
+    );
+    const totalPages = Math.max(
+      1,
+      Math.ceil(contentHeight / pageContentHeight)
+    );
 
     const alignmentJustifyClass =
       basics.alignment === 'center'
@@ -749,11 +751,14 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
           lineHeight: lineHeightStyle,
           padding:
             mode === 'preview'
-              ? `${margin.VALUE}px`
-              : `0px ${margin.VALUE}px`,
+              ? `${margins.top}px ${margins.right}px ${margins.bottom}px ${margins.left}px`
+              : `0px ${margins.right}px 0px ${margins.left}px`,
         }}
       >
-        <div className={`flex flex-1 flex-col w-full preview ${spacingClass}`}>
+        <div
+          className="flex flex-1 flex-col w-full preview"
+          style={{ gap: sectionGapPx }}
+        >
           {/* Personal Information Header */}
           <header
             className={`flex gap-4 ${
@@ -954,7 +959,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
           pageBreakLine &&
           totalPages > 1 &&
           Array.from({ length: totalPages - 1 }).map((_, idx) => {
-            const topOffset = (idx + 1) * A4_HEIGHT_PX + margin.VALUE / 2;
+            const topOffset = margins.top + (idx + 1) * pageContentHeight;
             return (
               <div
                 key={idx}

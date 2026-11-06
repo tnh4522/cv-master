@@ -28,9 +28,17 @@ import {
 import { FontPicker } from '@/components/controls/FontPicker';
 import { toast } from '@/components/ui/toast';
 import { TranslateCvDialog } from '@/components/modals/TranslateCvDialog';
+import { CONFIG, resolveMargins } from '@/lib/utils';
 import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import type { SkillsLayoutType } from '@/types/resume';
+
+const MARGIN_SIDES = [
+  { key: 'top', field: 'TOP', labelKey: 'controls.marginTop' },
+  { key: 'bottom', field: 'BOTTOM', labelKey: 'controls.marginBottom' },
+  { key: 'left', field: 'LEFT', labelKey: 'controls.marginLeft' },
+  { key: 'right', field: 'RIGHT', labelKey: 'controls.marginRight' },
+] as const;
 
 const DndSections = lazy(() => import('@/components/controls/DndSections'));
 
@@ -48,6 +56,7 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
   const [translateOpen, setTranslateOpen] = useState(false);
 
   const { alignment } = resumeData.basics;
+  const margins = resolveMargins(pdfSettings.margin);
 
   return (
     <>
@@ -345,28 +354,32 @@ export function ControlsSheet({ open, onOpenChange }: ControlsSheetProps) {
                 {t('controls.pageSetup')}
               </AccordionTrigger>
               <AccordionContent className="space-y-4 pt-2">
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <Label className="text-xs">{t('controls.pageMargin')}</Label>
-                    <span className="text-muted-foreground">
-                      {pdfSettings.margin.VALUE}px
-                    </span>
-                  </div>
-                  <Slider
-                    min={pdfSettings.margin.MIN}
-                    max={pdfSettings.margin.MAX}
-                    step={pdfSettings.margin.STEP || 1}
-                    value={[pdfSettings.margin.VALUE]}
-                    onValueChange={([val]) =>
-                      updatePdfSettings({
-                        margin: {
-                          ...pdfSettings.margin,
-                          VALUE: val,
-                        },
-                      })
-                    }
-                  />
-                </div>
+                {MARGIN_SIDES.map(({ key, field, labelKey }) => {
+                  const value = margins[key];
+                  return (
+                    <div key={key} className="space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <Label className="text-xs">{t(labelKey)}</Label>
+                        <span className="text-muted-foreground">{value}px</span>
+                      </div>
+                      <Slider
+                        aria-label={t(labelKey)}
+                        min={CONFIG.MARGIN.MIN}
+                        max={CONFIG.MARGIN.MAX}
+                        step={CONFIG.MARGIN.STEP}
+                        value={[value]}
+                        onValueChange={([val]) =>
+                          updatePdfSettings({
+                            margin: {
+                              ...pdfSettings.margin,
+                              [field]: val,
+                            },
+                          })
+                        }
+                      />
+                    </div>
+                  );
+                })}
 
                 <div className="flex items-center justify-between rounded-md border border-border p-3">
                   <div className="space-y-0.5">

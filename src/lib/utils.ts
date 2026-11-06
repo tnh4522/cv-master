@@ -35,8 +35,8 @@ export const CONFIG = {
     STEP: 1,
   },
   MARGIN: {
-    MIN: 10,
-    MAX: 50,
+    MIN: 0,
+    MAX: 80,
     INITIAL: 20,
     VALUE: 20,
     STEP: 1,
@@ -46,6 +46,37 @@ export const CONFIG = {
     RADIUS: { MIN: 0, MAX: 100, DEFAULT: 4 },
   },
 } as const;
+
+export interface ResolvedMargins {
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+}
+
+/**
+ * Resolves the four page margins (px) from a margin setting.
+ * Legacy settings that only carry `VALUE` apply it uniformly to every side.
+ */
+export function resolveMargins(
+  margin?: {
+    VALUE?: number;
+    TOP?: number;
+    BOTTOM?: number;
+    LEFT?: number;
+    RIGHT?: number;
+  } | null
+): ResolvedMargins {
+  const base = margin?.VALUE ?? CONFIG.MARGIN.VALUE;
+  const clamp = (v: number) =>
+    Math.min(CONFIG.MARGIN.MAX, Math.max(CONFIG.MARGIN.MIN, v));
+  return {
+    top: clamp(margin?.TOP ?? base),
+    bottom: clamp(margin?.BOTTOM ?? base),
+    left: clamp(margin?.LEFT ?? base),
+    right: clamp(margin?.RIGHT ?? base),
+  };
+}
 
 export const A4_DIMENSIONS_MM = { width: 210, height: 297 } as const;
 export const MM_TO_PX = 3.78;

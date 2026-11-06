@@ -1,5 +1,6 @@
 import type { BasicsData, PdfSettings } from '@/types/resume';
 import { buildGoogleFontUrl } from '@/services/fontsService';
+import { resolveMargins } from '@/lib/utils';
 
 export interface GeneratePdfParams {
   resumeSheetElement: HTMLElement;
@@ -67,6 +68,7 @@ export function buildStandaloneResumeHtml(
     '700',
   ]);
   const styleSheets: string[] = [];
+  const margins = resolveMargins(pdfSettings.margin);
 
   for (const sheet of Array.from(document.styleSheets)) {
     try {
@@ -94,7 +96,7 @@ export function buildStandaloneResumeHtml(
   clone.style.maxWidth = '210mm';
   clone.style.minHeight = 'auto';
   clone.style.margin = '0 auto';
-  clone.style.padding = `0px ${pdfSettings.margin.VALUE}px`;
+  clone.style.padding = `0px ${margins.right}px 0px ${margins.left}px`;
   clone.style.boxSizing = 'border-box';
 
   return `<!DOCTYPE html>
@@ -110,7 +112,7 @@ export function buildStandaloneResumeHtml(
   <style>
     @page {
       size: A4 portrait;
-      margin: ${pdfSettings.margin.VALUE}px 0;
+      margin: ${margins.top}px 0 ${margins.bottom}px 0;
     }
     *, *::before, *::after {
       box-sizing: border-box;
@@ -135,7 +137,7 @@ export function buildStandaloneResumeHtml(
       box-shadow: none !important;
       filter: none !important;
       margin: 0 auto !important;
-      padding: 0 ${pdfSettings.margin.VALUE}px !important;
+      padding: 0 ${margins.right}px 0 ${margins.left}px !important;
       background: #ffffff !important;
     }
     /* High-quality A4 print pagination rules */
@@ -182,12 +184,19 @@ export async function exportResumeToPdf({
       ? pdfApiUrl
       : `${pdfApiUrl.replace(/\/$/, '')}/pdf`;
 
+    const remoteMargins = resolveMargins(pdfSettings.margin);
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         htmlContent,
-        margin: pdfSettings.margin,
+        margin: {
+          ...pdfSettings.margin,
+          TOP: remoteMargins.top,
+          BOTTOM: remoteMargins.bottom,
+          LEFT: remoteMargins.left,
+          RIGHT: remoteMargins.right,
+        },
       }),
     });
 

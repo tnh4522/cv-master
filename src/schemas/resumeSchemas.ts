@@ -264,6 +264,10 @@ export const importPdfSettingsSchema = z.object({
     VALUE: z.number(),
     INITIAL: z.number(),
     STEP: z.number().optional(),
+    TOP: z.number().optional(),
+    BOTTOM: z.number().optional(),
+    LEFT: z.number().optional(),
+    RIGHT: z.number().optional(),
   }),
 });
 

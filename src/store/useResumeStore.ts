@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { CONFIG } from "@/lib/utils";
+import { CONFIG, resolveMargins } from "@/lib/utils";
 import type {
   BasicsData,
   ResumeData,
@@ -7,6 +7,7 @@ import type {
   ListSectionKey,
   SectionItemUnion,
   PdfSettings,
+  MarginSetting,
   CVAnalysisResult,
 } from "@/types/resume";
 
@@ -178,10 +179,33 @@ export const DEFAULT_PDF_SETTINGS: PdfSettings = {
     INITIAL: CONFIG.MARGIN.INITIAL,
     VALUE: CONFIG.MARGIN.VALUE,
     STEP: CONFIG.MARGIN.STEP,
+    TOP: CONFIG.MARGIN.VALUE,
+    BOTTOM: CONFIG.MARGIN.VALUE,
+    LEFT: CONFIG.MARGIN.VALUE,
+    RIGHT: CONFIG.MARGIN.VALUE,
   },
   pageBreakLine: true,
   skillsLayout: "inline",
 };
+
+/**
+ * Builds a complete margin setting. Legacy values that only have `VALUE`
+ * are expanded so every side starts from that uniform margin.
+ */
+export function normalizeMargin(margin?: Partial<MarginSetting> | null): MarginSetting {
+  const { top, bottom, left, right } = resolveMargins(margin);
+  return {
+    MIN: CONFIG.MARGIN.MIN,
+    MAX: CONFIG.MARGIN.MAX,
+    INITIAL: CONFIG.MARGIN.INITIAL,
+    STEP: CONFIG.MARGIN.STEP,
+    VALUE: left,
+    TOP: top,
+    BOTTOM: bottom,
+    LEFT: left,
+    RIGHT: right,
+  };
+}
 
 export function readLocalStorage<T>(key: string, fallback: T | null = null): T | null {
   try {
@@ -655,10 +679,7 @@ export const usePdfSettingsStore = create<PdfSettingsStoreState>((set) => ({
   pdfSettings: {
     ...DEFAULT_PDF_SETTINGS,
     ...persistedPdfSettings,
-    margin: {
-      ...DEFAULT_PDF_SETTINGS.margin,
-      ...(persistedPdfSettings?.margin || {}),
-    },
+    margin: normalizeMargin(persistedPdfSettings?.margin),
   },
   setValue: (key, value) => {
     set((state) => {
@@ -675,11 +696,10 @@ export const usePdfSettingsStore = create<PdfSettingsStoreState>((set) => ({
       const nextSettings: PdfSettings = {
         ...state.pdfSettings,
         ...patch,
-        margin: {
-          ...DEFAULT_PDF_SETTINGS.margin,
+        margin: normalizeMargin({
           ...state.pdfSettings.margin,
           ...(patch.margin || {}),
-        },
+        }),
       };
       localStorage.setItem("pdfSetting", JSON.stringify(nextSettings));
       return { pdfSettings: nextSettings };

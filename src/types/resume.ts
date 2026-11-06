@@ -209,8 +209,14 @@ export interface MarginSetting {
   MIN: number;
   MAX: number;
   INITIAL: number;
+  /** Legacy uniform margin (px); used as fallback for any side that is not set. */
   VALUE: number;
   STEP?: number;
+  /** Per-side margins in px. */
+  TOP?: number;
+  BOTTOM?: number;
+  LEFT?: number;
+  RIGHT?: number;
 }
 
 export interface PdfSettings {
