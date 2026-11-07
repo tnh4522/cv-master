@@ -11,6 +11,7 @@ import {
   GripVertical,
   ChevronUp,
   ChevronDown,
+  Code2,
 } from 'lucide-react';
 import {
   DndContext,
@@ -45,6 +46,7 @@ import { SectionIcon } from '@/components/icons/CustomIcons';
 import { useResumeStore } from '@/store/useResumeStore';
 import { useDialog } from '@/context/DialogContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { AddSectionItemJsonDialog } from '@/components/modals/AddSectionItemJsonDialog';
 import type { ListSectionKey, SectionItemUnion } from '@/types/resume';
 
 const restrictToVerticalAxis: Modifier = ({ transform }) => ({
@@ -299,6 +301,7 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
   const [titleDraft, setTitleDraft] = useState(title);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [isJsonDialogOpen, setIsJsonDialogOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -480,15 +483,35 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
         </SortableContext>
       </DndContext>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="w-full gap-1.5 border-dashed text-xs"
-        onClick={() => openDialog(sectionKey, 'create')}
-      >
-        <Plus className="h-3.5 w-3.5" />
-        <span>{t('common.addNewItem')}</span>
-      </Button>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="gap-1.5 border-dashed text-xs"
+          onClick={() => openDialog(sectionKey, 'create')}
+        >
+          <Plus className="h-3.5 w-3.5" />
+          <span>{t('common.addNewItem')}</span>
+        </Button>
+
+        <Button
+          type="button"
+          variant="outline"
+          data-testid={`add-json-btn-${sectionKey}`}
+          className="gap-1.5 border-dashed text-xs text-primary hover:text-primary hover:bg-primary/5"
+          tooltipContent={t('common.addItemsViaJsonTooltip')}
+          onClick={() => setIsJsonDialogOpen(true)}
+        >
+          <Code2 className="h-3.5 w-3.5" />
+          <span>{t('common.addItemsViaJson') || 'Thêm bằng JSON'}</span>
+        </Button>
+      </div>
+
+      <AddSectionItemJsonDialog
+        sectionKey={sectionKey}
+        open={isJsonDialogOpen}
+        onOpenChange={setIsJsonDialogOpen}
+      />
 
       <DeleteConfirmDialog
         open={Boolean(confirmDeleteId)}

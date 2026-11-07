@@ -323,6 +323,7 @@ export interface ResumeStoreState {
   updateSummary: (content: string) => void;
   updateSectionTitle: (section: SectionKey, title: string) => void;
   addSectionItem: (section: ListSectionKey, item: SectionItemUnion) => void;
+  addSectionItems: (section: ListSectionKey, items: SectionItemUnion[]) => void;
   updateSectionItem: (section: ListSectionKey, item: SectionItemUnion, index?: number) => void;
   deleteSectionItem: (section: ListSectionKey, id: string) => void;
   duplicateSectionItem: (section: ListSectionKey, id: string) => void;
@@ -546,6 +547,20 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
     set((state) => {
       const list = state.resumeData[section] as SectionItemUnion[];
       const nextList = [...list, item];
+      const nextResumeData: ResumeData = {
+        ...state.resumeData,
+        [section]: nextList,
+      };
+      localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
+      return { resumeData: nextResumeData };
+    });
+  },
+
+  addSectionItems: (section, items) => {
+    if (!items || items.length === 0) return;
+    set((state) => {
+      const list = state.resumeData[section] as SectionItemUnion[];
+      const nextList = [...list, ...items];
       const nextResumeData: ResumeData = {
         ...state.resumeData,
         [section]: nextList,

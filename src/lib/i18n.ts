@@ -79,6 +79,8 @@ export const translations = {
       sectionHiddenBanner:
         'This entire section is currently hidden from your CV. Click to restore it.',
       addNewItem: 'Add new item',
+      addItemsViaJson: 'Add with JSON',
+      addItemsViaJsonTooltip: 'Add one or more items to this section using JSON format',
       renameSection: 'Rename section',
       deleteItemTitle: 'Are you sure you want to delete this item?',
       deleteItemDesc:
@@ -488,6 +490,23 @@ export const translations = {
       checklistTitle: 'Section-by-Section Improvement Checklist',
       checklistDesc: 'Check off actionable improvements as you update your CV sections.',
     },
+    jsonSectionItem: {
+      dialogTitle: 'Add {section} with JSON',
+      dialogDesc: 'Paste a JSON object (single item) or array of objects to quickly add items to this section.',
+      pasteTab: 'Paste JSON',
+      fileTab: 'Upload JSON File',
+      textareaPlaceholder: 'Paste your JSON array or object here...',
+      fileUploadPlaceholder: 'Click or drop a JSON file here',
+      loadSample: 'Load Sample',
+      parsedPreview: 'Preview Parsed Items ({count})',
+      noValidItems: 'No valid items found to add',
+      syntaxError: 'Invalid JSON syntax. Please check formatting and brackets.',
+      schemaError: 'JSON does not contain any valid items for this section.',
+      addButton: 'Add {count} Items',
+      addSingleButton: 'Add 1 Item',
+      successToastTitle: 'Items Added Successfully',
+      successToastDesc: 'Added {count} items to {section}.',
+    },
   },
   vi: {
     app: {
@@ -568,6 +587,8 @@ export const translations = {
       sectionHiddenBanner:
         'Toàn bộ mục này hiện đang bị ẩn khỏi CV. Bấm vào đây để hiển thị lại.',
       addNewItem: 'Thêm mục mới',
+      addItemsViaJson: 'Thêm bằng JSON',
+      addItemsViaJsonTooltip: 'Thêm một hoặc nhiều mục vào phần này bằng định dạng JSON',
       renameSection: 'Đổi tên mục',
       deleteItemTitle: 'Bạn có chắc chắn muốn xóa mục này?',
       deleteItemDesc:
@@ -978,6 +999,23 @@ export const translations = {
       checklistTitle: 'Danh sách kiểm tra cải thiện theo từng mục',
       checklistDesc:
         'Đánh dấu vào các gợi ý bạn đã hoàn thành khi cập nhật các mục trong CV.',
+    },
+    jsonSectionItem: {
+      dialogTitle: 'Thêm {section} bằng JSON',
+      dialogDesc: 'Dán một đối tượng JSON hoặc một mảng các đối tượng để nhanh chóng thêm vào mục này.',
+      pasteTab: 'Dán mã JSON',
+      fileTab: 'Tải lên tệp JSON',
+      textareaPlaceholder: 'Dán mảng hoặc đối tượng JSON vào đây...',
+      fileUploadPlaceholder: 'Bấm hoặc thả tệp JSON vào đây',
+      loadSample: 'Mẫu gợi ý',
+      parsedPreview: 'Xem trước các mục đã nhận diện ({count})',
+      noValidItems: 'Không tìm thấy mục hợp lệ nào để thêm',
+      syntaxError: 'Cú pháp JSON không hợp lệ. Vui lòng kiểm tra dấu ngoặc và định dạng.',
+      schemaError: 'JSON không chứa các mục hợp lệ cho phần này.',
+      addButton: 'Thêm {count} mục',
+      addSingleButton: 'Thêm 1 mục',
+      successToastTitle: 'Đã thêm thành công',
+      successToastDesc: 'Đã thêm {count} mục vào {section}.',
     },
   },
 } as const;
