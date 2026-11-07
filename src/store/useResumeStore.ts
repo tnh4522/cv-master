@@ -1,5 +1,11 @@
 import { create } from "zustand";
 import { CONFIG, resolveMargins } from "@/lib/utils";
+import {
+  mergeResumeData as computeMergedResumeData,
+  mergeMultipleResumes as computeMultipleMergedResumes,
+  type MergeCvOptions,
+  type MergeCvResult,
+} from "@/services/mergeService";
 import type {
   BasicsData,
   ResumeData,
@@ -300,6 +306,14 @@ export interface ResumeStoreState {
   resumeData: ResumeData;
   setData: (partial: Partial<ResumeData>) => void;
   setResumeData: (data: ResumeData) => void;
+  mergeResumeData: (
+    incoming: Partial<ResumeData>,
+    options?: MergeCvOptions
+  ) => MergeCvResult;
+  mergeMultipleResumeData: (
+    incomingList: Partial<ResumeData>[],
+    options?: MergeCvOptions
+  ) => MergeCvResult;
   setCvLanguage: (
     lang: "en" | "vi",
     options?: { updateSectionTitles?: boolean }
@@ -378,6 +392,48 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
     }
 
     set(updates as ResumeStoreState);
+  },
+
+  mergeResumeData: (incoming, options) => {
+    const state = get();
+    const result = computeMergedResumeData(state.resumeData, incoming, options);
+    localStorage.setItem("resumeData", JSON.stringify(result.mergedData));
+    if (Array.isArray(result.mergedData.hiddenSections)) {
+      localStorage.setItem(
+        "hiddenSections",
+        JSON.stringify({ hiddenSections: result.mergedData.hiddenSections })
+      );
+      set({
+        resumeData: result.mergedData,
+        hiddenSections: result.mergedData.hiddenSections,
+      });
+    } else {
+      set({ resumeData: result.mergedData });
+    }
+    return result;
+  },
+
+  mergeMultipleResumeData: (incomingList, options) => {
+    const state = get();
+    const result = computeMultipleMergedResumes(
+      state.resumeData,
+      incomingList,
+      options
+    );
+    localStorage.setItem("resumeData", JSON.stringify(result.mergedData));
+    if (Array.isArray(result.mergedData.hiddenSections)) {
+      localStorage.setItem(
+        "hiddenSections",
+        JSON.stringify({ hiddenSections: result.mergedData.hiddenSections })
+      );
+      set({
+        resumeData: result.mergedData,
+        hiddenSections: result.mergedData.hiddenSections,
+      });
+    } else {
+      set({ resumeData: result.mergedData });
+    }
+    return result;
   },
 
   setCvLanguage: (cvLanguage, options) => {

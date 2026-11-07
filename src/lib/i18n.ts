@@ -16,6 +16,8 @@ export const translations = {
       downloadTooltip: 'Download PDF or JSON',
       import: 'Import',
       importTooltip: 'Import CV',
+      mergeCv: 'Merge CV',
+      mergeCvTooltip: 'Upload and merge CV (JSON) into current CV',
       resetTooltip: 'Reset to default CV',
       languageTooltip: 'Change system display language',
       cvLanguage: 'CV Language',
@@ -389,6 +391,41 @@ export const translations = {
       imageImportedTitle: 'Image Resume Imported',
       imageImportedDesc: 'Resume fields have been extracted from your image.',
       importFailedTitle: 'Import failed',
+      jsonImportModeLabel: 'Import Action',
+      modeReplaceTitle: 'Replace current CV',
+      modeReplaceDesc: 'Overwrite entire CV with the uploaded JSON file',
+      modeMergeTitle: 'Merge into current CV',
+      modeMergeDesc: 'Keep current edits and only fill missing fields & new items',
+      jsonMergedTitle: 'CV Merged Successfully',
+      jsonMergedDesc:
+        'Added {added} new item(s) and updated {updated} existing item(s)/field(s) into your current CV.',
+    },
+    merge: {
+      title: 'Merge CV (JSON)',
+      description:
+        'Upload one or more CV (.json) files to merge missing sections, items, and fields into the CV you are currently editing.',
+      dropzoneTitle: 'Click to select or drag & drop CV (.json) files',
+      dropzoneSub: 'Supports single or multiple CVMaster / partial CV .json files',
+      uploadedFilesLabel: 'Uploaded CV JSON Files ({count})',
+      clearAll: 'Clear all',
+      removeFile: 'Remove file',
+      replaceDefaultLabel: 'Overwrite untouched default template placeholders ("John Doe")',
+      replaceDefaultDesc:
+        'Enable if you have not replaced the initial template info and want the uploaded CV to fill it.',
+      previewTitle: 'Merge Preview (Changes to Current CV)',
+      noChangesBanner:
+        'All fields and items in the uploaded JSON already exist in your current CV.',
+      basicsFilledLabel: 'Personal Info & Summary fields to fill ({count}):',
+      newItemsBadge: '+{count} new',
+      updatedItemsBadge: '{count} updated',
+      mergeBtn: 'Merge into Current CV',
+      merging: 'Merging...',
+      mergedSuccessTitle: 'CV (JSON) Merged Successfully!',
+      mergedSuccessDesc:
+        'Merged {files} file(s): added {added} new item(s), updated {updated} item(s), and filled {basics} personal field(s).',
+      mergedNoChangesTitle: 'No missing fields to merge',
+      mergedNoChangesDesc:
+        'Your current CV already contains all sections and fields from the uploaded JSON.',
     },
     aiReview: {
       dialogTitle: 'AI CV Review & ATS Scoring',
@@ -467,6 +504,8 @@ export const translations = {
       downloadTooltip: 'Tải xuống PDF hoặc JSON',
       import: 'Nhập CV',
       importTooltip: 'Nhập CV từ tệp',
+      mergeCv: 'Gộp CV',
+      mergeCvTooltip: 'Tải lên và gộp CV (JSON) vào CV đang chỉnh sửa',
       resetTooltip: 'Khôi phục CV mặc định',
       languageTooltip: 'Đổi ngôn ngữ hiển thị hệ thống',
       cvLanguage: 'Ngôn ngữ CV',
@@ -842,6 +881,41 @@ export const translations = {
       imageImportedTitle: 'Đã nhập CV từ Hình ảnh',
       imageImportedDesc: 'Thông tin CV đã được trích xuất từ hình ảnh của bạn.',
       importFailedTitle: 'Nhập dữ liệu thất bại',
+      jsonImportModeLabel: 'Chế độ nhập JSON',
+      modeReplaceTitle: 'Thay thế CV hiện tại',
+      modeReplaceDesc: 'Ghi đè toàn bộ CV bằng tệp JSON tải lên',
+      modeMergeTitle: 'Gộp (Merge) vào CV đang sửa',
+      modeMergeDesc: 'Giữ nguyên dữ liệu đang sửa, chỉ bổ sung các mục và trường chưa có',
+      jsonMergedTitle: 'Đã gộp CV thành công',
+      jsonMergedDesc:
+        'Đã bổ sung {added} mục mới và cập nhật {updated} mục/trường còn thiếu vào CV đang chỉnh sửa.',
+    },
+    merge: {
+      title: 'Gộp CV (Merge JSON)',
+      description:
+        'Tải lên một hoặc nhiều tệp CV (.json) để gộp những mục, những trường (fields) chưa có vào CV gốc bạn đang chỉnh sửa.',
+      dropzoneTitle: 'Nhấn để chọn hoặc kéo thả các tệp CV (.json)',
+      dropzoneSub: 'Hỗ trợ tải lên 1 hoặc nhiều tệp .json cùng lúc để gộp vào CV hiện tại',
+      uploadedFilesLabel: 'Danh sách tệp CV JSON đã tải lên ({count})',
+      clearAll: 'Xóa tất cả',
+      removeFile: 'Xóa tệp',
+      replaceDefaultLabel: 'Ghi đè dữ liệu mẫu mặc định ban đầu ("John Doe")',
+      replaceDefaultDesc:
+        'Bật tùy chọn này nếu CV hiện tại vẫn đang để thông tin mẫu mặc định và bạn muốn lấy thông tin từ tệp tải lên.',
+      previewTitle: 'Xem trước nội dung sẽ gộp vào CV hiện tại',
+      noChangesBanner:
+        'Tất cả các mục và trường trong tệp JSON tải lên đều đã có trong CV hiện tại của bạn.',
+      basicsFilledLabel: 'Trường thông tin cá nhân & Tóm tắt được bổ sung ({count}):',
+      newItemsBadge: '+{count} mục mới',
+      updatedItemsBadge: 'Bổ sung {count} mục',
+      mergeBtn: 'Gộp vào CV đang sửa',
+      merging: 'Đang gộp...',
+      mergedSuccessTitle: 'Gộp CV (JSON) thành công!',
+      mergedSuccessDesc:
+        'Đã gộp {files} tệp: thêm {added} mục mới, bổ sung trường thiếu cho {updated} mục, và điền {basics} trường cá nhân.',
+      mergedNoChangesTitle: 'Không có mục mới cần bổ sung',
+      mergedNoChangesDesc:
+        'CV đang chỉnh sửa đã có đầy đủ các mục và trường từ tệp JSON tải lên.',
     },
     aiReview: {
       dialogTitle: 'Đánh giá CV & Chấm điểm ATS bằng AI',

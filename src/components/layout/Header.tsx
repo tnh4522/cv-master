@@ -4,6 +4,7 @@ import {
   Sparkles,
   Download,
   Upload,
+  GitMerge,
   RotateCcw,
   Languages,
 } from 'lucide-react';
@@ -14,6 +15,7 @@ import {
 import { toast } from '@/components/ui/toast';
 import { DownloadDialog } from '@/components/modals/DownloadDialog';
 import { ImportDialog } from '@/components/modals/ImportDialog';
+import { MergeCvDialog } from '@/components/modals/MergeCvDialog';
 import { AiReviewDialog } from '@/components/modals/AiReviewDialog';
 import { TranslateCvDialog } from '@/components/modals/TranslateCvDialog';
 import { CvLanguageSelector } from '@/components/layout/CvLanguageSelector';
@@ -32,6 +34,7 @@ export function Header() {
 
   const [downloadOpen, setDownloadOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
+  const [mergeOpen, setMergeOpen] = useState(false);
   const [aiReviewOpen, setAiReviewOpen] = useState(false);
   const [translateOpen, setTranslateOpen] = useState(false);
   const [confirmResetOpen, setConfirmResetOpen] = useState(false);
@@ -102,6 +105,19 @@ export function Header() {
             type="button"
             variant="outline"
             size="sm"
+            data-testid="header-merge-cv-btn"
+            className="h-8 gap-1.5 px-2.5 text-xs"
+            tooltipContent={t('header.mergeCvTooltip')}
+            onClick={() => setMergeOpen(true)}
+          >
+            <GitMerge className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t('header.mergeCv')}</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
             className="h-8 gap-1.5 px-2.5 text-xs font-medium text-primary hover:bg-primary/5"
             tooltipContent={t('header.translateCvTooltip')}
             onClick={() => setTranslateOpen(true)}
@@ -131,6 +147,7 @@ export function Header() {
 
       <DownloadDialog open={downloadOpen} onOpenChange={setDownloadOpen} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      <MergeCvDialog open={mergeOpen} onOpenChange={setMergeOpen} />
       <AiReviewDialog open={aiReviewOpen} onOpenChange={setAiReviewOpen} />
       <TranslateCvDialog open={translateOpen} onOpenChange={setTranslateOpen} />
 

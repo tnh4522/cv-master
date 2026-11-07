@@ -28,6 +28,12 @@ import {
 import { ResumeSheet } from '@/components/preview/ResumeSheet';
 import { SummaryEditor } from '@/components/editor/SummaryEditor';
 import { ImportDialog } from '@/components/modals/ImportDialog';
+import { MergeCvDialog } from '@/components/modals/MergeCvDialog';
+import {
+  mergeResumeData,
+  mergeMultipleResumes,
+  parseCvJsonForMerge,
+} from '@/services/mergeService';
 import { cvMasterJsonSchema } from '@/schemas/resumeSchemas';
 import { fireEvent, waitFor } from '@testing-library/react';
 
@@ -438,5 +444,280 @@ describe('Phase 3 Import & Export — PDF, Image, JSON & Profile Photo Adapters'
     );
     expect(screen.getByText('Lundi Matin Groupe (France)')).toBeInTheDocument();
     expect(screen.queryByText('Tekup JSC')).not.toBeInTheDocument();
+  });
+
+  it('merges missing sections, items, and fields from uploaded CV (JSON) into the currently edited CV without overwriting existing edits', async () => {
+    const store = useResumeStore.getState();
+
+    // 1. Set up the currently edited CV ("edit gốc đang edit") with some fields filled and some missing
+    store.setResumeData({
+      ...store.resumeData,
+      basics: {
+        ...store.resumeData.basics,
+        name: 'Trần Ngọc Huy',
+        title: 'IT Engineer',
+        email: 'tnh2045@gmail.com',
+        linkedin: '', // missing in current CV
+        website: '', // missing in current CV
+        phone: { value: '0777 408 164', breakAfter: false },
+        location: { value: '', breakAfter: false }, // missing in current CV
+        dateOfBirth: { value: '', breakAfter: false }, // missing in current CV
+        customFields: [
+          {
+            id: 'cf-1',
+            name: 'GitHub',
+            iconName: 'github',
+            value: '', // missing value in current CV
+          },
+        ],
+        photo: {
+          url: '', // missing photo in current CV
+          size: 100,
+          borderRadius: 4,
+          visible: true,
+        },
+      },
+      summary: {
+        sectionTitle: 'Summary',
+        content: '<p>Current custom summary that must not be overwritten.</p>',
+      },
+      experience: [
+        {
+          id: 'exp-1',
+          name: 'Lundi Matin Groupe',
+          position: 'Full-Stack Developer',
+          dateRange: '03/2024 – 10/2026',
+          location: '', // missing in current item
+          employmentType: 'Full-time',
+          website: '', // missing in current item
+          summary: '', // missing in current item
+        },
+      ],
+      projects: [],
+      education: [],
+      skills: [
+        {
+          id: 'skill-1',
+          name: 'Frontend',
+          keywords: ['React', 'TypeScript'],
+        },
+      ],
+      softSkills: [],
+      languages: [
+        {
+          id: 'lang-1',
+          name: 'English',
+          level: '', // missing in current item
+          certificate: '', // missing in current item
+          score: '', // missing in current item
+        },
+      ],
+      certifications: [],
+      awards: [],
+      volunteering: [],
+      interests: [],
+    });
+
+    // 2. Incoming CV JSON #1: has missing fields for existing items + new items
+    const incomingJson1 = parseCvJsonForMerge({
+      basics: {
+        name: 'Different Name Should Not Overwrite',
+        title: 'Different Title Should Not Overwrite',
+        email: 'other@example.com',
+        linkedin: 'https://linkedin.com/in/tran-huy',
+        website: 'https://huytran.dev',
+        location: { value: 'Da Nang, Vietnam', breakAfter: true },
+        dateOfBirth: { value: '20/04/2002', breakAfter: false },
+        photo: {
+          url: 'https://example.com/huy.jpg',
+          size: 110,
+          borderRadius: 8,
+          visible: true,
+        },
+        customFields: [
+          {
+            id: 'cf-gh',
+            name: 'GitHub',
+            iconName: 'github',
+            value: 'https://github.com/tranhuy',
+          },
+          {
+            id: 'cf-gl',
+            name: 'GitLab',
+            iconName: 'link',
+            value: 'https://gitlab.com/tranhuy',
+          },
+        ],
+      },
+      summary: {
+        sectionTitle: 'Summary',
+        content: '<p>Incoming summary should not overwrite non-empty summary.</p>',
+      },
+      experience: [
+        {
+          id: 'exp-inc-1',
+          name: 'Lundi Matin Groupe',
+          position: 'Full-Stack Developer',
+          dateRange: '03/2024 – 10/2026',
+          location: 'Da Nang, Vietnam',
+          employmentType: 'Contract', // should NOT overwrite 'Full-time'
+          website: 'https://lundimatin.fr',
+          summary: '<ul><li>Built ERP & CRM modules.</li></ul>',
+        },
+        {
+          id: 'exp-inc-2',
+          name: 'Tekup JSC',
+          position: 'Frontend Intern',
+          dateRange: '05/2023 – 07/2023',
+          location: 'Da Nang',
+          employmentType: 'Internship',
+          website: 'https://tekup.vn',
+          summary: '<p>Developed client web apps.</p>',
+        },
+      ],
+      skills: [
+        {
+          id: 'sk-inc-1',
+          name: 'Frontend',
+          keywords: ['React', 'Next.js 16', 'Tailwind CSS'],
+        },
+        {
+          id: 'sk-inc-2',
+          name: 'Networking',
+          keywords: ['TCP/IP', 'VLAN'],
+        },
+      ],
+      languages: [
+        {
+          id: 'lang-inc-1',
+          name: 'English',
+          level: 'Intermediate',
+          certificate: 'TOEIC',
+          score: '510',
+          description: 'Good technical reading and communication',
+        },
+      ],
+    });
+
+    // 3. Incoming CV JSON #2: has certifications, awards, softSkills, interests
+    const incomingJson2 = parseCvJsonForMerge({
+      softSkills: [
+        {
+          id: 'soft-1',
+          name: 'Collaboration',
+          keywords: ['Teamwork', 'Problem Solving'],
+        },
+      ],
+      certifications: [
+        {
+          id: 'cert-1',
+          name: 'TOEIC 510',
+          issuer: 'IIG Vietnam',
+          date: '2025',
+          website: '',
+          summary: '<p>Listening & Reading</p>',
+        },
+      ],
+      awards: [
+        {
+          id: 'aw-1',
+          name: 'First Prize – DUT Hackathon',
+          issuer: 'KMS Technology',
+          date: '02/2023',
+          website: '',
+          summary: '',
+        },
+      ],
+      interests: [
+        {
+          id: 'int-1',
+          name: 'Running',
+          description: 'Weekend 10km runs',
+          keywords: ['Endurance', 'Discipline'],
+        },
+      ],
+    });
+
+    // Render MergeCvDialog and upload both JSON files
+    render(<MergeCvDialog open={true} onOpenChange={() => {}} />);
+
+    const file1 = new File([JSON.stringify(incomingJson1)], 'cv-part-1.json', {
+      type: 'application/json',
+    });
+    const file2 = new File([JSON.stringify(incomingJson2)], 'cv-part-2.json', {
+      type: 'application/json',
+    });
+
+    const mergeInput = screen.getByTestId('merge-file-input');
+    fireEvent.change(mergeInput, { target: { files: [file1, file2] } });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('merge-preview-panel')).toBeInTheDocument();
+    });
+
+    const confirmBtn = screen.getByTestId('confirm-merge-cv-btn');
+    expect(confirmBtn).not.toBeDisabled();
+    fireEvent.click(confirmBtn);
+
+    const merged = useResumeStore.getState().resumeData;
+
+    // Existing basics fields preserved
+    expect(merged.basics.name).toBe('Trần Ngọc Huy');
+    expect(merged.basics.title).toBe('IT Engineer');
+    expect(merged.basics.email).toBe('tnh2045@gmail.com');
+    expect(merged.basics.phone.value).toBe('0777 408 164');
+
+    // Missing basics fields filled from incoming JSON
+    expect(merged.basics.linkedin).toBe('https://linkedin.com/in/tran-huy');
+    expect(merged.basics.website).toBe('https://huytran.dev');
+    expect(merged.basics.location.value).toBe('Da Nang, Vietnam');
+    expect(merged.basics.dateOfBirth?.value).toBe('20/04/2002');
+    expect(merged.basics.photo.url).toBe('https://example.com/huy.jpg');
+
+    // Custom fields: existing GitHub had its missing value filled, and new GitLab was added
+    expect(merged.basics.customFields).toHaveLength(2);
+    expect(merged.basics.customFields[0].value).toBe(
+      'https://github.com/tranhuy'
+    );
+    expect(merged.basics.customFields[1].name).toBe('GitLab');
+
+    // Existing summary preserved
+    expect(merged.summary.content).toContain(
+      'Current custom summary that must not be overwritten.'
+    );
+
+    // Experience: existing Lundi Matin Groupe had missing location, website, summary filled, while keeping employmentType 'Full-time'; new Tekup JSC added
+    expect(merged.experience).toHaveLength(2);
+    expect(merged.experience[0].name).toBe('Lundi Matin Groupe');
+    expect(merged.experience[0].employmentType).toBe('Full-time');
+    expect(merged.experience[0].location).toBe('Da Nang, Vietnam');
+    expect(merged.experience[0].website).toBe('https://lundimatin.fr');
+    expect(merged.experience[0].summary).toContain('Built ERP & CRM modules.');
+    expect(merged.experience[1].name).toBe('Tekup JSC');
+
+    // Skills: Frontend keywords deduplicated & merged, Networking category added
+    expect(merged.skills).toHaveLength(2);
+    expect(merged.skills[0].keywords).toEqual([
+      'React',
+      'TypeScript',
+      'Next.js 16',
+      'Tailwind CSS',
+    ]);
+    expect(merged.skills[1].name).toBe('Networking');
+
+    // Languages: English had missing level, certificate, score, description filled
+    expect(merged.languages).toHaveLength(1);
+    expect(merged.languages[0].level).toBe('Intermediate');
+    expect(merged.languages[0].certificate).toBe('TOEIC');
+    expect(merged.languages[0].score).toBe('510');
+    expect(merged.languages[0].description).toBe(
+      'Good technical reading and communication'
+    );
+
+    // Sections from JSON #2 merged in
+    expect(merged.softSkills).toHaveLength(1);
+    expect(merged.certifications).toHaveLength(1);
+    expect(merged.awards).toHaveLength(1);
+    expect(merged.interests).toHaveLength(1);
   });
 });

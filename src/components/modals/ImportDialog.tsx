@@ -4,6 +4,7 @@ import {
   AlertCircle,
   FileJson,
   FileText,
+  GitMerge,
   Image as ImageIcon,
   Loader2,
   Upload,
@@ -34,9 +35,11 @@ import {
   validateImageImportFile,
   validatePdfImportFile,
 } from '@/services/importService';
+import { parseCvJsonForMerge } from '@/services/mergeService';
 import type { PdfSettings, ResumeData, SectionKey } from '@/types/resume';
 
 export type ImportFormatType = 'pdf' | 'image' | 'cv-master-json' | 'json';
+export type JsonImportMode = 'replace' | 'merge';
 
 export interface ImportDialogProps {
   open: boolean;
@@ -46,6 +49,7 @@ export interface ImportDialogProps {
 export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
   const {
     setResumeData,
+    mergeResumeData,
     setHiddenItemIds,
     setHiddenSections,
     updateSectionOrder,
@@ -56,6 +60,7 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [format, setFormat] = useState<ImportFormatType>('pdf');
+  const [jsonImportMode, setJsonImportMode] = useState<JsonImportMode>('replace');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [extractedPdfText, setExtractedPdfText] = useState<string>('');
   const [pdfPreviewText, setPdfPreviewText] = useState<string>('');
@@ -64,7 +69,8 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
   // Two-step JSON validation state (`df` -> `uf`)
   const [isJsonValidated, setIsJsonValidated] = useState(false);
   const [validatedJsonPayload, setValidatedJsonPayload] = useState<{
-    resumeData: ResumeData;
+    resumeData?: ResumeData;
+    partialResumeData: Partial<ResumeData>;
     pdfSettings: PdfSettings;
     hiddenItemIds: string[];
     hiddenSections?: SectionKey[];
@@ -102,7 +108,10 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
     }
   };
 
-  const validateJsonFile = async (file: File) => {
+  const validateJsonFile = async (
+    file: File,
+    modeOverride: JsonImportMode = jsonImportMode
+  ) => {
     setErrorMessage('');
     try {
       const rawText =
@@ -141,8 +150,10 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
             hiddenSections: parsedJson.hiddenSections || [],
           };
 
+      const partialResumeData = parseCvJsonForMerge(parsedJson);
       const validation = cvMasterJsonSchema.safeParse(candidate);
-      if (!validation.success) {
+
+      if (!validation.success && modeOverride === 'replace') {
         const firstIssue = validation.error.issues[0];
         throw new Error(
           firstIssue
@@ -151,13 +162,16 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
         );
       }
 
-      const validatedData = validation.data;
+      const validatedData = validation.success ? validation.data : undefined;
       setValidatedJsonPayload({
-        resumeData: validatedData as unknown as ResumeData,
-        pdfSettings: (validatedData.pdfSettings ||
-          currentPdfSettings) as PdfSettings,
-        hiddenItemIds: validatedData.hiddenItemIds || [],
-        hiddenSections: (validatedData.hiddenSections || []) as SectionKey[],
+        resumeData: validatedData
+          ? (validatedData as unknown as ResumeData)
+          : undefined,
+        partialResumeData,
+        pdfSettings: ((validatedData?.pdfSettings ||
+          currentPdfSettings) as unknown) as PdfSettings,
+        hiddenItemIds: validatedData?.hiddenItemIds || [],
+        hiddenSections: (validatedData?.hiddenSections || []) as SectionKey[],
         sectionOrder: Array.isArray(parsedJson.sectionOrder)
           ? (parsedJson.sectionOrder as SectionKey[])
           : undefined,
@@ -277,6 +291,32 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
           setErrorMessage('Please validate the JSON file before importing.');
           return;
         }
+        if (jsonImportMode === 'merge') {
+          const mergeRes = mergeResumeData(
+            validatedJsonPayload.partialResumeData
+          );
+          const updatedCount =
+            mergeRes.summary.totalUpdatedItems +
+            mergeRes.summary.filledBasicsFields.length +
+            (mergeRes.summary.summaryUpdated ? 1 : 0);
+          toast({
+            title: t('import.jsonMergedTitle'),
+            description: t('import.jsonMergedDesc', {
+              added: mergeRes.summary.totalAddedItems,
+              updated: updatedCount,
+            }),
+          });
+          resetState();
+          onOpenChange(false);
+          return;
+        }
+
+        if (!validatedJsonPayload.resumeData) {
+          setErrorMessage(
+            'Full CVMaster JSON is required to replace the entire CV. Switch to Merge mode to merge partial fields.'
+          );
+          return;
+        }
         setResumeData(validatedJsonPayload.resumeData);
         updatePdfSettings(validatedJsonPayload.pdfSettings);
         setHiddenItemIds(validatedJsonPayload.hiddenItemIds);
@@ -393,6 +433,64 @@ export function ImportDialog({ open, onOpenChange }: ImportDialogProps) {
               </SelectContent>
             </Select>
           </div>
+
+          {/* JSON Import Mode Selector (Replace vs Merge into Current CV) */}
+          {format === 'cv-master-json' && (
+            <div className="space-y-1.5">
+              <Label className="text-xs font-semibold">
+                {t('import.jsonImportModeLabel')}
+              </Label>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  data-testid="json-mode-replace"
+                  onClick={() => {
+                    setJsonImportMode('replace');
+                    if (selectedFile) {
+                      void validateJsonFile(selectedFile, 'replace');
+                    }
+                  }}
+                  className={`flex flex-col items-start gap-0.5 rounded-md border p-2.5 text-left transition-colors ${
+                    jsonImportMode === 'replace'
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border bg-muted/20 text-muted-foreground hover:bg-muted/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-semibold">
+                    <Upload className="h-3.5 w-3.5 text-primary" />
+                    <span>{t('import.modeReplaceTitle')}</span>
+                  </div>
+                  <span className="text-[11px] leading-snug text-muted-foreground">
+                    {t('import.modeReplaceDesc')}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  data-testid="json-mode-merge"
+                  onClick={() => {
+                    setJsonImportMode('merge');
+                    if (selectedFile) {
+                      void validateJsonFile(selectedFile, 'merge');
+                    }
+                  }}
+                  className={`flex flex-col items-start gap-0.5 rounded-md border p-2.5 text-left transition-colors ${
+                    jsonImportMode === 'merge'
+                      ? 'border-primary bg-primary/10 text-foreground'
+                      : 'border-border bg-muted/20 text-muted-foreground hover:bg-muted/40'
+                  }`}
+                >
+                  <div className="flex items-center gap-1.5 text-xs font-semibold">
+                    <GitMerge className="h-3.5 w-3.5 text-primary" />
+                    <span>{t('import.modeMergeTitle')}</span>
+                  </div>
+                  <span className="text-[11px] leading-snug text-muted-foreground">
+                    {t('import.modeMergeDesc')}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* File Drop / Picker Box */}
           <div className="space-y-2">
