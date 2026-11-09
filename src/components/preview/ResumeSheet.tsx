@@ -60,19 +60,23 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
     const [sheetHeight, setSheetHeight] = useState<number>(A4_HEIGHT_PX);
 
     const {
-      fontSize,
+      fontSize = 14,
       fontFamily,
-      lineHeight,
-      verticalSpacing,
+      lineHeight = 5,
+      verticalSpacing = 3,
       margin,
       pageBreakLine,
-      skillsLayout,
-    } = pdfSettings;
+      skillsLayout = 'inline',
+    } = pdfSettings || {};
 
     const { basics, sectionTitles } = resumeData;
-    const lineHeightStyle = `${lineHeight * 0.25}rem`;
+    const safeLineHeight =
+      typeof lineHeight === 'number' && !Number.isNaN(lineHeight) && lineHeight > 0
+        ? lineHeight
+        : 5;
+    const lineHeightStyle = `${safeLineHeight * 0.25}rem`;
     // Gap between sections: slider value x 4px plus a small base for breathing room.
-    const sectionGapPx = (verticalSpacing + SECTION_GAP_BASE) * 4;
+    const sectionGapPx = ((verticalSpacing ?? 3) + SECTION_GAP_BASE) * 4;
 
     useEffect(() => {
       if (fontFamily) {
@@ -293,6 +297,76 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                       style={{ lineHeight: lineHeightStyle }}
                     >
                       <span className="font-semibold">Technologies: </span>
+                      {item.keywords.join(', ')}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      if (key === 'research') {
+        const items = (resumeData.research || []).filter(
+          (item) => !hiddenItemIds.includes(item.id)
+        );
+        if (items.length === 0) return null;
+        return (
+          <div key="research" className="w-full">
+            <h3
+              className="mb-1 border-b border-neutral-400 font-bold text-neutral-900"
+              style={headingStyle}
+            >
+              {sectionTitles.research || 'Research'}
+            </h3>
+            <div className="space-y-2.5">
+              {items.map((item) => (
+                <div key={item.id} data-resume-entry="true" className="space-y-0.5">
+                  <div className="flex items-baseline justify-between gap-2">
+                    <div className="font-semibold text-neutral-900">
+                      {item.website ? (
+                        <a
+                          href={normalizeHref(item.website)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline decoration-neutral-400 underline-offset-2"
+                        >
+                          {item.name}
+                        </a>
+                      ) : (
+                        <span>{item.name}</span>
+                      )}
+                      {(item.publisher || item.description) && (
+                        <span className="ml-1.5 font-normal text-neutral-700">
+                          — {item.publisher || item.description}
+                        </span>
+                      )}
+                    </div>
+                    {item.date && (
+                      <span className="shrink-0 whitespace-nowrap text-neutral-700">
+                        {item.date}
+                      </span>
+                    )}
+                  </div>
+                  {item.role && (
+                    <div className="italic text-neutral-800">{item.role}</div>
+                  )}
+                  {!isEmptyRichText(item.summary) && (
+                    <div
+                      className="preview pt-0.5 text-neutral-800"
+                      style={{ lineHeight: lineHeightStyle }}
+                      dangerouslySetInnerHTML={{
+                        __html: sanitizeSummaryHtml(item.summary),
+                      }}
+                    />
+                  )}
+                  {item.keywords && item.keywords.length > 0 && (
+                    <p
+                      className="text-neutral-700"
+                      style={{ lineHeight: lineHeightStyle }}
+                    >
+                      <span className="font-semibold">Keywords: </span>
                       {item.keywords.join(', ')}
                     </p>
                   )}
@@ -761,6 +835,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
         >
           {/* Personal Information Header */}
           <header
+            data-testid="personal-info-header"
             className={`flex gap-4 ${
               basics.alignment === 'center'
                 ? 'flex-col items-center text-center'
@@ -769,7 +844,8 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                 : 'flex-row items-center justify-between text-left'
             }`}
             style={{
-              marginBottom: `${Math.max(12, verticalSpacing * 6)}px`,
+              marginBottom: `${Math.max(12, (verticalSpacing ?? 3) * 6)}px`,
+              lineHeight: lineHeightStyle,
             }}
           >
             {showPhoto && (
@@ -785,13 +861,18 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
               />
             )}
 
-            <div className={`flex flex-1 flex-col ${alignmentItemsClass}`}>
+            <div
+              className={`flex flex-1 flex-col ${alignmentItemsClass}`}
+              style={{
+                lineHeight: lineHeightStyle,
+              }}
+            >
               {basics.name && (
                 <h1
                   className="font-bold tracking-tight text-neutral-900"
                   style={{
                     fontSize: `${fontSize + 10}px`,
-                    lineHeight: `${Math.max(1.15, lineHeight * 0.22)}`,
+                    lineHeight: lineHeightStyle,
                   }}
                 >
                   {basics.name}
@@ -811,12 +892,13 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
 
               {/* Contact Information (2 fixed lines: 1. Mail, SDT, Ngày sinh, Địa chỉ | 2. LinkedIn, Portfolio) */}
               <div
+                data-testid="personal-info-contacts"
                 className={`flex flex-col w-full text-neutral-700 ${alignmentItemsClass}`}
                 style={{
                   fontSize: `${Math.max(10, fontSize - 1)}px`,
                   lineHeight: lineHeightStyle,
-                  gap: `${Math.max(2, (lineHeight - 4) * 2.5 + 2)}px`,
-                  marginTop: `${Math.max(4, (lineHeight - 3) * 2)}px`,
+                  gap: `${Math.max(2, (safeLineHeight - 4) * 2.5 + 2)}px`,
+                  marginTop: `${Math.max(4, (safeLineHeight - 3) * 2)}px`,
                 }}
               >
                 {/* 1. Mail, SDT, Ngày sinh, Địa chỉ */}
@@ -829,7 +911,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                     style={{
                       lineHeight: lineHeightStyle,
                       minHeight: lineHeightStyle,
-                      rowGap: `${Math.max(2, (lineHeight - 4) * 2 + 2)}px`,
+                      rowGap: `${Math.max(2, (safeLineHeight - 4) * 2 + 2)}px`,
                     }}
                   >
                     {basics.email && (
@@ -871,7 +953,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                     style={{
                       lineHeight: lineHeightStyle,
                       minHeight: lineHeightStyle,
-                      rowGap: `${Math.max(2, (lineHeight - 4) * 2 + 2)}px`,
+                      rowGap: `${Math.max(2, (safeLineHeight - 4) * 2 + 2)}px`,
                     }}
                   >
                     {basics.linkedin && (
@@ -910,7 +992,7 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                     style={{
                       lineHeight: lineHeightStyle,
                       minHeight: lineHeightStyle,
-                      rowGap: `${Math.max(2, (lineHeight - 4) * 2 + 2)}px`,
+                      rowGap: `${Math.max(2, (safeLineHeight - 4) * 2 + 2)}px`,
                     }}
                   >
                     {basics.customFields.map((field) => {

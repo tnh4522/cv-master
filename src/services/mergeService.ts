@@ -9,6 +9,7 @@ import type {
   LanguageItem,
   ListSectionKey,
   ProjectItem,
+  ResearchItem,
   ResumeData,
   SectionItemUnion,
   SectionKey,
@@ -23,6 +24,7 @@ import {
 export const LIST_SECTION_KEYS: ListSectionKey[] = [
   'experience',
   'projects',
+  'research',
   'education',
   'skills',
   'softSkills',
@@ -38,6 +40,7 @@ const RECOGNIZED_CV_KEYS = new Set<string>([
   'summary',
   'experience',
   'projects',
+  'research',
   'education',
   'skills',
   'softSkills',
@@ -383,6 +386,18 @@ function normalizeIncomingItem(
         summary: str(raw.summary),
         keywords: strArr(raw.keywords),
       } satisfies ProjectItem;
+    case 'research':
+      return {
+        id,
+        name: str(raw.name),
+        role: str(raw.role),
+        publisher: str(raw.publisher),
+        description: str(raw.description),
+        date: str(raw.date),
+        website: str(raw.website),
+        summary: str(raw.summary),
+        keywords: strArr(raw.keywords),
+      } satisfies ResearchItem;
     case 'education':
       return {
         id,
@@ -456,7 +471,7 @@ function isItemMeaningful(section: ListSectionKey, item: Record<string, unknown>
   const hasName = typeof item.name === 'string' && item.name.trim().length > 0;
   if (hasName) return true;
 
-  if (section === 'skills' || section === 'softSkills' || section === 'interests' || section === 'projects') {
+  if (section === 'skills' || section === 'softSkills' || section === 'interests' || section === 'projects' || section === 'research') {
     if (
       Array.isArray(item.keywords) &&
       item.keywords.some((k) => typeof k === 'string' && k.trim().length > 0)
@@ -503,6 +518,9 @@ export function isSameSectionItem(
       return true;
     }
     case 'projects': {
+      return Boolean(nameA && nameB && nameA === nameB);
+    }
+    case 'research': {
       return Boolean(nameA && nameB && nameA === nameB);
     }
     case 'education': {
@@ -556,6 +574,15 @@ const SECTION_SCALAR_FIELDS: Record<ListSectionKey, string[]> = {
     'summary',
   ],
   projects: ['name', 'description', 'date', 'website', 'summary'],
+  research: [
+    'name',
+    'role',
+    'publisher',
+    'description',
+    'date',
+    'website',
+    'summary',
+  ],
   education: ['name', 'degree', 'studyField', 'date', 'website', 'summary'],
   skills: ['name'],
   softSkills: ['name'],
@@ -580,6 +607,7 @@ const SECTION_SCALAR_FIELDS: Record<ListSectionKey, string[]> = {
 
 const SECTION_HAS_KEYWORDS = new Set<ListSectionKey>([
   'projects',
+  'research',
   'skills',
   'softSkills',
   'interests',
@@ -988,6 +1016,7 @@ export function mergeResumeData(
     summary: mergedSummary,
     experience: mergedLists.experience as ExperienceItem[],
     projects: mergedLists.projects as ProjectItem[],
+    research: mergedLists.research as ResearchItem[],
     education: mergedLists.education as EducationItem[],
     skills: mergedLists.skills as SkillItem[],
     softSkills: mergedLists.softSkills as SkillItem[],

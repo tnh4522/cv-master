@@ -17,6 +17,7 @@ import {
   HeartHandshake,
   Heart,
   FolderGit2,
+  Microscope,
 } from "lucide-react";
 import type { CustomFieldIconName, SectionKey } from "@/types/resume";
 
@@ -216,6 +217,8 @@ export function SectionIcon({
       return <Briefcase className={className} />;
     case "projects":
       return <FolderGit2 className={className} />;
+    case "research":
+      return <Microscope className={className} />;
     case "skills":
       return <Sparkles className={className} />;
     case "softSkills":

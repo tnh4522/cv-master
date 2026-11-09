@@ -51,6 +51,18 @@ export const projectItemSchema = z.object({
   keywords: z.array(z.string()).optional(),
 });
 
+export const researchItemSchema = z.object({
+  name: z.string().trim().min(1, { message: "Name is required" }),
+  role: z.string().trim().optional().default(""),
+  publisher: z.string().trim().optional().default(""),
+  description: z.string().trim().optional().default(""),
+  date: z.string().trim(),
+  website: z.literal("").or(z.string().url()),
+  summary: z.string(),
+  keyword: z.string().optional(),
+  keywords: z.array(z.string()).optional(),
+});
+
 export const educationItemSchema = z.object({
   name: z.string().trim().min(1, { message: "Name is required" }),
   degree: z.string().trim(),
@@ -188,6 +200,18 @@ export const importProjectSchema = z.object({
   keywords: z.array(z.string()).optional().default([]),
 });
 
+export const importResearchSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  role: z.string().optional().default(""),
+  publisher: z.string().optional().default(""),
+  description: z.string().optional().default(""),
+  date: z.string().optional().default(""),
+  website: z.string().optional().default(""),
+  summary: z.string().optional().default(""),
+  keywords: z.array(z.string()).optional().default([]),
+});
+
 export const importEducationSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -230,6 +254,7 @@ export const importSectionTitlesSchema = z.object({
   summary: z.string().optional(),
   experience: z.string().optional(),
   projects: z.string().optional(),
+  research: z.string().optional(),
   education: z.string().optional(),
   skills: z.string().optional(),
   softSkills: z.string().optional(),
@@ -277,6 +302,7 @@ export const cvMasterJsonSchema = z.object({
   summary: importSummarySchema,
   experience: z.array(importExperienceSchema).optional().default([]),
   projects: z.array(importProjectSchema).optional().default([]),
+  research: z.array(importResearchSchema).optional().default([]),
   education: z.array(importEducationSchema).optional().default([]),
   skills: z.array(importSkillSchema).optional().default([]),
   softSkills: z.array(importSkillSchema).optional().default([]),

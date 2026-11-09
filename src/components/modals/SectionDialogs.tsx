@@ -52,6 +52,7 @@ import {
   interestItemSchema,
   languageItemSchema,
   projectItemSchema,
+  researchItemSchema,
   skillItemSchema,
   volunteeringItemSchema,
 } from '@/schemas/resumeSchemas';
@@ -63,6 +64,7 @@ import type {
   InterestItem,
   LanguageItem,
   ProjectItem,
+  ResearchItem,
   SkillItem,
   VolunteeringItem,
 } from '@/types/resume';
@@ -85,6 +87,7 @@ const LANGUAGE_LEVELS = [
 
 type ExperienceFormValues = z.infer<typeof experienceItemSchema>;
 type ProjectFormValues = z.infer<typeof projectItemSchema>;
+type ResearchFormValues = z.infer<typeof researchItemSchema>;
 type EducationFormValues = z.infer<typeof educationItemSchema>;
 type SkillFormValues = z.infer<typeof skillItemSchema>;
 type LanguageFormValues = z.infer<typeof languageItemSchema>;
@@ -1933,11 +1936,225 @@ function InterestsDialog() {
   );
 }
 
+/* ============================================================================
+ * 10. ResearchDialog
+ * ========================================================================== */
+function ResearchDialog() {
+  const { activeSection, mode, activeItem, closeDialog } = useDialog();
+  const { addSectionItem, updateSectionItem } = useResumeStore();
+  const { t } = useLanguage();
+  const open = activeSection === 'research' && mode !== null;
+
+  const form = useForm<ResearchFormValues>({
+    resolver: zodResolver(researchItemSchema),
+    defaultValues: {
+      name: '',
+      role: '',
+      publisher: '',
+      description: '',
+      date: '',
+      website: '',
+      summary: '',
+      keywords: [],
+    },
+  });
+
+  useEffect(() => {
+    if (!open) return;
+    if (mode === 'edit' && activeItem) {
+      const item = activeItem as ResearchItem;
+      form.reset({
+        name: item.name || '',
+        role: item.role || '',
+        publisher: item.publisher || item.description || '',
+        description: item.description || '',
+        date: item.date || '',
+        website: item.website || '',
+        summary: item.summary || '',
+        keywords: item.keywords || [],
+      });
+    } else {
+      form.reset({
+        name: '',
+        role: '',
+        publisher: '',
+        description: '',
+        date: '',
+        website: '',
+        summary: '',
+        keywords: [],
+      });
+    }
+  }, [open, mode, activeItem, form]);
+
+  const onSubmit = (values: ResearchFormValues) => {
+    const id =
+      mode === 'edit' && activeItem ? activeItem.id : `res-${Date.now()}`;
+    const payload: ResearchItem = {
+      id,
+      name: values.name,
+      role: values.role || '',
+      publisher: values.publisher || '',
+      description: values.publisher || values.description || '',
+      date: values.date || '',
+      website: values.website || '',
+      summary: values.summary || '',
+      keywords: values.keywords || [],
+    };
+    if (mode === 'edit') {
+      updateSectionItem('research', payload);
+    } else {
+      addSectionItem('research', payload);
+    }
+    closeDialog();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && closeDialog()}>
+      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {mode === 'edit'
+              ? t('dialogs.research.editTitle')
+              : t('dialogs.research.addTitle')}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>{t('dialogs.research.researchTitle')} *</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. Deep Learning for Real-Time Medical Imaging"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="role"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('dialogs.research.role')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. Lead Researcher / Co-author"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="publisher"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('dialogs.research.publisher')}</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="e.g. IEEE Access / AI Lab"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('common.dateOrRange')}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="2023 - 2024" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="website"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('common.website')}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="https://doi.org/..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="keywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('dialogs.research.keywords')}</FormLabel>
+                  <FormControl>
+                    <KeywordListInput
+                      keywords={field.value || []}
+                      onChange={field.onChange}
+                      placeholder={t('dialogs.researchKeywordPlaceholder')}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="summary"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{t('common.summary')}</FormLabel>
+                  <FormControl>
+                    <RichTextEditor
+                      content={field.value || ''}
+                      onUpdate={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={closeDialog}>
+                {t('common.cancel')}
+              </Button>
+              <Button type="submit">
+                {mode === 'edit' ? t('common.saveChanges') : t('common.create')}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function SectionDialogsHost() {
   return (
     <>
       <ExperienceDialog />
       <ProjectsDialog />
+      <ResearchDialog />
       <EducationDialog />
       <SkillsDialog />
       <SoftSkillsDialog />

@@ -273,7 +273,12 @@ describe('Phase 2 Core Implementation — Stores, Schemas, Editor & Preview', ()
   it('dynamically applies lineHeight to the entire ResumeSheet and personal info contact header', () => {
     const { container, rerender } = render(<ResumeSheet mode="preview" />);
     const sheetEl = container.querySelector('[data-testid="resume-sheet"]') as HTMLElement;
+    const headerEl = container.querySelector('[data-testid="personal-info-header"]') as HTMLElement;
+    const contactsEl = container.querySelector('[data-testid="personal-info-contacts"]') as HTMLElement;
+
     expect(sheetEl.style.lineHeight).toBe('1.25rem'); // default lineHeight = 5 (5 * 0.25rem = 1.25rem)
+    expect(headerEl.style.lineHeight).toBe('1.25rem');
+    expect(contactsEl.style.lineHeight).toBe('1.25rem');
 
     // Update lineHeight to 8 (2.00rem)
     act(() => {
@@ -281,11 +286,17 @@ describe('Phase 2 Core Implementation — Stores, Schemas, Editor & Preview', ()
     });
     rerender(<ResumeSheet mode="preview" />);
     expect(sheetEl.style.lineHeight).toBe('2rem');
+    expect(headerEl.style.lineHeight).toBe('2rem');
+    expect(contactsEl.style.lineHeight).toBe('2rem');
 
     // Reset back to default
     act(() => {
       usePdfSettingsStore.getState().updatePdfSettings({ lineHeight: 5 });
     });
+    rerender(<ResumeSheet mode="preview" />);
+    expect(sheetEl.style.lineHeight).toBe('1.25rem');
+    expect(headerEl.style.lineHeight).toBe('1.25rem');
+    expect(contactsEl.style.lineHeight).toBe('1.25rem');
   });
 
   it('supports hiding an entire section and omits it from ResumeSheet preview', () => {

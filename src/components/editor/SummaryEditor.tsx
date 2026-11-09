@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Pencil, Check, Eye, EyeOff } from 'lucide-react';
+import { Pencil, Check, Eye, EyeOff, FileDown } from 'lucide-react';
 import { Button, Input, Separator } from '@/components/ui/primitives';
 import { SectionIcon } from '@/components/icons/CustomIcons';
 import { RichTextEditor } from '@/components/editor/RichTextEditor';
+import { ExportSectionJsonDialog } from '@/components/modals/ExportSectionJsonDialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 
@@ -24,6 +25,7 @@ export function SummaryEditor() {
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(currentTitle);
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isEditingTitle) {
@@ -91,6 +93,19 @@ export function SummaryEditor() {
             type="button"
             variant="ghost"
             size="sm"
+            data-testid="export-section-json-btn-summary"
+            className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+            tooltipContent={t('common.exportSectionJsonTooltip')}
+            onClick={() => setIsExportDialogOpen(true)}
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t('common.exportJson')}</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
             className={`h-8 gap-1.5 px-2.5 text-xs ${
               isSectionHidden
                 ? 'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 dark:text-amber-400'
@@ -143,6 +158,12 @@ export function SummaryEditor() {
       <RichTextEditor
         content={currentContent}
         onUpdate={(html) => updateSummary(html)}
+      />
+
+      <ExportSectionJsonDialog
+        sectionKey="summary"
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
       />
 
       <Separator className="my-4" />

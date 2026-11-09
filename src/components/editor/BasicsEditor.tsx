@@ -5,6 +5,7 @@ import {
   Eye,
   EyeOff,
   RotateCcw,
+  FileDown,
 } from 'lucide-react';
 import {
   Button,
@@ -19,6 +20,7 @@ import { SectionIcon } from '@/components/icons/CustomIcons';
 import { useLanguage } from '@/context/LanguageContext';
 import { useResumeStore } from '@/store/useResumeStore';
 import { basicsFormSchema } from '@/schemas/resumeSchemas';
+import { ExportSectionJsonDialog } from '@/components/modals/ExportSectionJsonDialog';
 import {
   isValidPhotoUrl,
   uploadProfilePhoto,
@@ -35,6 +37,7 @@ export function BasicsEditor() {
   const [confirmRemovePhotoOpen, setConfirmRemovePhotoOpen] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [photoUrlError, setPhotoUrlError] = useState<string>('');
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
 
   const validateSingleField = (path: string, nextBasics = basics) => {
     const parsed = basicsFormSchema.safeParse({
@@ -127,9 +130,23 @@ export function BasicsEditor() {
 
   return (
     <section id="section-basics" className="space-y-5">
-      <div className="flex items-center gap-2.5">
-        <SectionIcon section="basics" className="h-5 w-5 text-primary" />
-        <h2 className="text-lg font-bold tracking-tight">{t('basics.title')}</h2>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <SectionIcon section="basics" className="h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold tracking-tight">{t('basics.title')}</h2>
+        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          data-testid="export-section-json-btn-basics"
+          className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+          tooltipContent={t('common.exportSectionJsonTooltip')}
+          onClick={() => setIsExportDialogOpen(true)}
+        >
+          <FileDown className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline">{t('common.exportJson')}</span>
+        </Button>
       </div>
 
       {/* Profile Photo Controls (Du) */}
@@ -542,6 +559,12 @@ export function BasicsEditor() {
           )}
         </div>
       </div>
+
+      <ExportSectionJsonDialog
+        sectionKey="basics"
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+      />
 
       <Separator className="my-4" />
     </section>

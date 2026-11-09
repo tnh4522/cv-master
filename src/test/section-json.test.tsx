@@ -7,8 +7,12 @@ import {
   normalizeExperienceItem,
   normalizeProjectItem,
   normalizeSkillItem,
+  getSectionExportData,
+  formatSectionExportJson,
+  formatSectionExportFilename,
 } from '@/services/sectionJsonService';
 import { AddSectionItemJsonDialog } from '@/components/modals/AddSectionItemJsonDialog';
+import { ExportSectionJsonDialog } from '@/components/modals/ExportSectionJsonDialog';
 import { SectionListEditor } from '@/components/editor/SectionListEditor';
 import { useResumeStore } from '@/store/useResumeStore';
 import { DialogProvider } from '@/context/DialogContext';
@@ -101,6 +105,7 @@ describe('Section JSON Item Service & Dialog', () => {
       const sections = [
         'experience',
         'projects',
+        'research',
         'education',
         'skills',
         'softSkills',
@@ -229,6 +234,147 @@ describe('Section JSON Item Service & Dialog', () => {
 
       const languages = useResumeStore.getState().resumeData.languages;
       expect(languages.some((l) => l.name === 'Japanese' && l.certificate === 'JLPT N3')).toBe(true);
+    });
+  });
+
+  describe('Section Export JSON service & dialog', () => {
+    it('exports list sections in array and wrapped formats', () => {
+      const resumeData = useResumeStore.getState().resumeData;
+
+      // Array format
+      const arrayData = getSectionExportData('experience', resumeData, {
+        format: 'array',
+      });
+      expect(Array.isArray(arrayData)).toBe(true);
+      expect((arrayData as any[]).length).toBe(resumeData.experience.length);
+
+      // Wrapped format
+      const wrappedData = getSectionExportData('experience', resumeData, {
+        format: 'wrapped',
+      }) as Record<string, any>;
+      expect(wrappedData.experience).toBeDefined();
+      expect(Array.isArray(wrappedData.experience)).toBe(true);
+
+      // Pretty printed JSON string
+      const jsonStr = formatSectionExportJson('experience', resumeData, {
+        format: 'wrapped',
+      });
+      expect(jsonStr).toContain('"experience":');
+      expect(JSON.parse(jsonStr).experience).toHaveLength(resumeData.experience.length);
+    });
+
+    it('filters out hidden items when excludeHidden is true', () => {
+      const store = useResumeStore.getState();
+      const firstExpId = store.resumeData.experience[0].id;
+
+      // Without excludeHidden
+      const withHidden = getSectionExportData('experience', store.resumeData, {
+        excludeHidden: false,
+        hiddenItemIds: [firstExpId],
+      }) as any[];
+      expect(withHidden.length).toBe(1);
+
+      // With excludeHidden
+      const withoutHidden = getSectionExportData('experience', store.resumeData, {
+        excludeHidden: true,
+        hiddenItemIds: [firstExpId],
+      }) as any[];
+      expect(withoutHidden.length).toBe(0);
+    });
+
+    it('exports basics and summary sections properly', () => {
+      const resumeData = useResumeStore.getState().resumeData;
+
+      const directBasics = getSectionExportData('basics', resumeData, {
+        format: 'array',
+      }) as any;
+      expect(directBasics.name).toBe(resumeData.basics.name);
+
+      const wrappedBasics = getSectionExportData('basics', resumeData, {
+        format: 'wrapped',
+      }) as any;
+      expect(wrappedBasics.basics.name).toBe(resumeData.basics.name);
+
+      const directSummary = getSectionExportData('summary', resumeData, {
+        format: 'array',
+      }) as any;
+      expect(directSummary.content).toBe(resumeData.summary.content);
+
+      const wrappedSummary = getSectionExportData('summary', resumeData, {
+        format: 'wrapped',
+      }) as any;
+      expect(wrappedSummary.summary.content).toBe(resumeData.summary.content);
+    });
+
+    it('generates clean and safe export filenames', () => {
+      const basics = { name: 'Trần Ngọc Huy', title: 'Software Engineer' };
+      const expFilename = formatSectionExportFilename(basics, 'experience');
+      expect(expFilename).toBe('Trần_Ngọc_Huy-experience.json');
+
+      const emptyBasics = { name: '', title: '' };
+      const emptyFilename = formatSectionExportFilename(emptyBasics, 'skills');
+      expect(emptyFilename).toBe('Resume-skills.json');
+    });
+
+    it('renders ExportSectionJsonDialog with preview and format toggles', async () => {
+      render(
+        <LanguageProvider>
+          <ExportSectionJsonDialog
+            sectionKey="experience"
+            open={true}
+            onOpenChange={() => {}}
+          />
+        </LanguageProvider>
+      );
+
+      const textarea = screen.getByTestId('section-json-preview-textarea') as HTMLTextAreaElement;
+      expect(textarea).toBeInTheDocument();
+      expect(textarea.value).toContain('TechNova Solutions');
+
+      // Toggle to wrapped format
+      const wrappedBtn = screen.getByTestId('export-format-wrapped-btn');
+      fireEvent.click(wrappedBtn);
+
+      await waitFor(() => {
+        expect(textarea.value).toContain('"experience": [');
+      });
+
+      // Toggle back to array format
+      const arrayBtn = screen.getByTestId('export-format-array-btn');
+      fireEvent.click(arrayBtn);
+
+      await waitFor(() => {
+        expect(textarea.value.trim().startsWith('[')).toBe(true);
+      });
+
+      // Check inline and footer copy buttons
+      const copyBtn = screen.getByTestId('copy-section-json-btn');
+      expect(copyBtn).toBeInTheDocument();
+      fireEvent.click(copyBtn);
+
+      // Check download button
+      const downloadBtn = screen.getByTestId('download-section-json-btn');
+      expect(downloadBtn).toBeInTheDocument();
+    });
+
+    it('opens ExportSectionJsonDialog directly from SectionListEditor header button', async () => {
+      render(
+        <LanguageProvider>
+          <DialogProvider>
+            <SectionListEditor sectionKey="skills" />
+          </DialogProvider>
+        </LanguageProvider>
+      );
+
+      const exportBtn = screen.getByTestId('export-section-json-btn-skills');
+      expect(exportBtn).toBeInTheDocument();
+      fireEvent.click(exportBtn);
+
+      await waitFor(() => {
+        expect(screen.getByTestId('section-json-preview-textarea')).toBeInTheDocument();
+      });
+      const textarea = screen.getByTestId('section-json-preview-textarea') as HTMLTextAreaElement;
+      expect(textarea.value).toContain('Frontend & Languages');
     });
   });
 });

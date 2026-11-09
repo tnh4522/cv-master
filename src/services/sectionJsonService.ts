@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 import type {
   AwardItem,
+  BasicsData,
   CertificationItem,
   EducationItem,
   ExperienceItem,
@@ -8,7 +9,10 @@ import type {
   LanguageItem,
   ListSectionKey,
   ProjectItem,
+  ResearchItem,
+  ResumeData,
   SectionItemUnion,
+  SectionKey,
   SkillItem,
   SoftSkillItem,
   VolunteeringItem,
@@ -203,6 +207,114 @@ export function normalizeProjectItem(
   return {
     id,
     name: name.trim(),
+    description: description.trim(),
+    date: date.trim(),
+    website: website.trim(),
+    summary: summary.trim(),
+    keywords: Array.from(new Set(keywords)),
+  };
+}
+
+/**
+ * Normalizes an unknown record into a valid ResearchItem.
+ */
+export function normalizeResearchItem(
+  raw: Record<string, unknown>
+): ResearchItem | null {
+  const name =
+    typeof raw.name === 'string'
+      ? raw.name
+      : typeof raw.title === 'string'
+      ? raw.title
+      : typeof raw.researchTitle === 'string'
+      ? raw.researchTitle
+      : '';
+
+  if (!name.trim()) return null;
+
+  const role =
+    typeof raw.role === 'string'
+      ? raw.role
+      : typeof raw.position === 'string'
+      ? raw.position
+      : typeof raw.authors === 'string'
+      ? raw.authors
+      : '';
+
+  const publisher =
+    typeof raw.publisher === 'string'
+      ? raw.publisher
+      : typeof raw.journal === 'string'
+      ? raw.journal
+      : typeof raw.conference === 'string'
+      ? raw.conference
+      : typeof raw.institution === 'string'
+      ? raw.institution
+      : '';
+
+  const description =
+    typeof raw.description === 'string'
+      ? raw.description
+      : publisher;
+
+  const date =
+    typeof raw.date === 'string'
+      ? raw.date
+      : typeof raw.dateRange === 'string'
+      ? raw.dateRange
+      : typeof raw.year === 'string' || typeof raw.year === 'number'
+      ? String(raw.year)
+      : '';
+
+  const website =
+    typeof raw.website === 'string'
+      ? raw.website
+      : typeof raw.url === 'string'
+      ? raw.url
+      : typeof raw.doi === 'string'
+      ? raw.doi
+      : typeof raw.link === 'string'
+      ? raw.link
+      : '';
+
+  let summary = '';
+  if (typeof raw.summary === 'string') {
+    summary = raw.summary;
+  } else if (typeof raw.abstract === 'string') {
+    summary = `<p>${raw.abstract}</p>`;
+  } else if (Array.isArray(raw.highlights)) {
+    summary = `<ul>${raw.highlights
+      .filter((h) => typeof h === 'string' && h.trim())
+      .map((h) => `<li><p>${h}</p></li>`)
+      .join('')}</ul>`;
+  }
+
+  let keywords: string[] = [];
+  if (Array.isArray(raw.keywords)) {
+    keywords = raw.keywords
+      .map((k) => String(k).trim())
+      .filter(Boolean);
+  } else if (Array.isArray(raw.tags)) {
+    keywords = raw.tags
+      .map((k) => String(k).trim())
+      .filter(Boolean);
+  } else if (typeof raw.keyword === 'string' && raw.keyword.trim()) {
+    keywords = raw.keyword
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean);
+  }
+
+  const id =
+    typeof raw.id === 'string' && raw.id.trim()
+      ? raw.id
+      : generateId('res');
+
+  return {
+    id,
+    name: name.trim(),
+    role: role.trim(),
+    publisher: publisher.trim(),
     description: description.trim(),
     date: date.trim(),
     website: website.trim(),
@@ -776,6 +888,9 @@ export function parseSectionItemsFromJson(
       case 'projects':
         item = normalizeProjectItem(raw);
         break;
+      case 'research':
+        item = normalizeResearchItem(raw);
+        break;
       case 'education':
         item = normalizeEducationItem(raw);
         break;
@@ -851,6 +966,24 @@ export function getSectionJsonSample(sectionKey: ListSectionKey): string {
             summary:
               '<p>Implemented payment gateway, product catalog, and real-time inventory tracking.</p>',
             keywords: ['React', 'Node.js', 'PostgreSQL', 'Tailwind CSS'],
+          },
+        ],
+        null,
+        2
+      );
+
+    case 'research':
+      return JSON.stringify(
+        [
+          {
+            name: 'Edge AI Quantization Optimization',
+            role: 'Lead Researcher',
+            publisher: 'IEEE Access',
+            date: '2024',
+            website: 'https://example.com/research',
+            summary:
+              '<p>Conducted extensive research on model compression and integer quantization for low-power IoT microcontrollers.</p>',
+            keywords: ['Deep Learning', 'PyTorch', 'Quantization', 'Edge Computing'],
           },
         ],
         null,
@@ -982,4 +1115,87 @@ export function getSectionJsonSample(sectionKey: ListSectionKey): string {
         2
       );
   }
+}
+
+export type AnySectionKey = SectionKey | 'basics';
+
+export type SectionExportFormat = 'array' | 'wrapped';
+
+export interface ExportSectionOptions {
+  format?: SectionExportFormat;
+  excludeHidden?: boolean;
+  hiddenItemIds?: string[];
+}
+
+/**
+ * Returns structured data for exporting a section.
+ */
+export function getSectionExportData(
+  sectionKey: AnySectionKey,
+  resumeData: ResumeData,
+  options: ExportSectionOptions = {}
+): unknown {
+  const { format = 'array', excludeHidden = false, hiddenItemIds = [] } = options;
+
+  if (sectionKey === 'basics') {
+    return format === 'wrapped' ? { basics: resumeData.basics } : resumeData.basics;
+  }
+
+  if (sectionKey === 'summary') {
+    return format === 'wrapped' ? { summary: resumeData.summary } : resumeData.summary;
+  }
+
+  const items = (resumeData[sectionKey] || []) as SectionItemUnion[];
+  const filtered = excludeHidden
+    ? items.filter((it) => !hiddenItemIds.includes(it.id))
+    : items;
+
+  if (format === 'wrapped') {
+    return {
+      [sectionKey]: filtered,
+    };
+  }
+
+  return filtered;
+}
+
+/**
+ * Formats section data as pretty-printed JSON string.
+ */
+export function formatSectionExportJson(
+  sectionKey: AnySectionKey,
+  resumeData: ResumeData,
+  options: ExportSectionOptions = {}
+): string {
+  const data = getSectionExportData(sectionKey, resumeData, options);
+  return JSON.stringify(data, null, 2);
+}
+
+/**
+ * Formats a clean, safe filename for exporting a section JSON file.
+ */
+export function formatSectionExportFilename(
+  basics: Pick<BasicsData, 'name' | 'title'>,
+  sectionKey: AnySectionKey
+): string {
+  const safeName = (basics.name || 'Resume')
+    .trim()
+    .replace(/\s+/g, '_')
+    .replace(/[^\w\u00C0-\u024F\u1EA0-\u1EF9\-]/g, '');
+  return `${safeName || 'cv'}-${sectionKey}.json`;
+}
+
+/**
+ * Triggers browser download of a JSON file.
+ */
+export function triggerJsonDownload(filename: string, jsonString: string): void {
+  const blob = new Blob([jsonString], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 }

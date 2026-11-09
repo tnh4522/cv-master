@@ -12,6 +12,7 @@ import {
   ChevronUp,
   ChevronDown,
   Code2,
+  FileDown,
 } from 'lucide-react';
 import {
   DndContext,
@@ -47,6 +48,7 @@ import { useResumeStore } from '@/store/useResumeStore';
 import { useDialog } from '@/context/DialogContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { AddSectionItemJsonDialog } from '@/components/modals/AddSectionItemJsonDialog';
+import { ExportSectionJsonDialog } from '@/components/modals/ExportSectionJsonDialog';
 import type { ListSectionKey, SectionItemUnion } from '@/types/resume';
 
 const restrictToVerticalAxis: Modifier = ({ transform }) => ({
@@ -60,6 +62,20 @@ interface SectionListEditorProps {
 
 function getItemSubtext(item: SectionItemUnion): string {
   if ('position' in item && item.position) return item.position;
+  if ('role' in item || 'publisher' in item) {
+    const parts: string[] = [];
+    if ('role' in item && item.role) {
+      parts.push(item.role);
+    }
+    if ('publisher' in item && item.publisher) {
+      parts.push(item.publisher);
+    } else if ('description' in item && item.description) {
+      parts.push(item.description);
+    }
+    if (parts.length > 0) {
+      return parts.join(' • ');
+    }
+  }
   if ('degree' in item && item.degree) {
     return 'studyField' in item && item.studyField
       ? `${item.degree} • ${item.studyField}`
@@ -302,6 +318,7 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [isJsonDialogOpen, setIsJsonDialogOpen] = useState(false);
+  const [isExportJsonDialogOpen, setIsExportJsonDialogOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -390,6 +407,19 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
         </div>
 
         <div className="flex items-center gap-1.5">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            data-testid={`export-section-json-btn-${sectionKey}`}
+            className="h-8 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground"
+            tooltipContent={t('common.exportSectionJsonTooltip')}
+            onClick={() => setIsExportJsonDialogOpen(true)}
+          >
+            <FileDown className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{t('common.exportJson')}</span>
+          </Button>
+
           <Button
             type="button"
             variant="ghost"
@@ -511,6 +541,12 @@ export function SectionListEditor({ sectionKey }: SectionListEditorProps) {
         sectionKey={sectionKey}
         open={isJsonDialogOpen}
         onOpenChange={setIsJsonDialogOpen}
+      />
+
+      <ExportSectionJsonDialog
+        sectionKey={sectionKey}
+        open={isExportJsonDialogOpen}
+        onOpenChange={setIsExportJsonDialogOpen}
       />
 
       <DeleteConfirmDialog

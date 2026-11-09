@@ -81,6 +81,8 @@ export const translations = {
       addNewItem: 'Add new item',
       addItemsViaJson: 'Add with JSON',
       addItemsViaJsonTooltip: 'Add one or more items to this section using JSON format',
+      exportJson: 'Export JSON',
+      exportSectionJsonTooltip: 'Export this section as JSON',
       renameSection: 'Rename section',
       deleteItemTitle: 'Are you sure you want to delete this item?',
       deleteItemDesc:
@@ -171,6 +173,7 @@ export const translations = {
       skillKeywordPlaceholder: 'e.g. React, TypeScript (press Enter)',
       softSkillKeywordPlaceholder: 'e.g. Communication, Teamwork (press Enter)',
       interestKeywordPlaceholder: 'e.g. 35mm Film, Lightroom (press Enter)',
+      researchKeywordPlaceholder: 'e.g. Deep Learning, NLP, IEEE (press Enter)',
       experience: {
         addTitle: 'Add Work Experience',
         editTitle: 'Edit Work Experience',
@@ -184,6 +187,14 @@ export const translations = {
         editTitle: 'Edit Project',
         projectName: 'Project Name',
         keywords: 'Keywords / Technologies',
+      },
+      research: {
+        addTitle: 'Add Research',
+        editTitle: 'Edit Research',
+        researchTitle: 'Research / Paper Title',
+        role: 'Role / Authors',
+        publisher: 'Journal / Conference / Institution',
+        keywords: 'Keywords / Research Topics',
       },
       education: {
         addTitle: 'Add Education',
@@ -357,6 +368,9 @@ export const translations = {
       jsonOptionTitle: 'CVMaster Backup (.json)',
       jsonOptionDesc:
         'Save your structured resume data to import and continue editing anytime.',
+      exportBySectionTitle: 'Export by Section (.json)',
+      exportBySectionDesc:
+        'Export individual sections (Experience, Projects, Skills...) to modular JSON files.',
       jsonExportedTitle: 'JSON exported',
       jsonExportedDesc: 'Your CV data backup (.json) has been downloaded.',
       exportFailedTitle: 'Export failed',
@@ -507,6 +521,22 @@ export const translations = {
       successToastTitle: 'Items Added Successfully',
       successToastDesc: 'Added {count} items to {section}.',
     },
+    exportSectionJson: {
+      dialogTitle: 'Export {section} as JSON',
+      dialogDesc: 'View, copy, or download structured JSON for this section.',
+      selectSection: 'Select Section',
+      formatLabel: 'JSON Structure',
+      formatArray: 'Array of items [ ... ]',
+      formatWrapped: 'Wrapped object { "{section}": [ ... ] }',
+      excludeHidden: 'Exclude items hidden from CV',
+      copiedToastTitle: 'Copied to clipboard',
+      copiedToastDesc: 'JSON data for {section} copied to clipboard.',
+      downloadJson: 'Download .json',
+      copyJson: 'Copy JSON',
+      copied: 'Copied!',
+      itemCount: '{count} item(s)',
+      emptyState: 'This section currently has no items to export.',
+    },
   },
   vi: {
     app: {
@@ -589,6 +619,8 @@ export const translations = {
       addNewItem: 'Thêm mục mới',
       addItemsViaJson: 'Thêm bằng JSON',
       addItemsViaJsonTooltip: 'Thêm một hoặc nhiều mục vào phần này bằng định dạng JSON',
+      exportJson: 'Xuất JSON',
+      exportSectionJsonTooltip: 'Xuất dữ liệu mục này dạng JSON',
       renameSection: 'Đổi tên mục',
       deleteItemTitle: 'Bạn có chắc chắn muốn xóa mục này?',
       deleteItemDesc:
@@ -679,6 +711,7 @@ export const translations = {
       skillKeywordPlaceholder: 'VD: React, TypeScript (nhấn Enter)',
       softSkillKeywordPlaceholder: 'VD: Giao tiếp, Làm việc nhóm (nhấn Enter)',
       interestKeywordPlaceholder: 'VD: Chụp ảnh phim, Chạy bộ (nhấn Enter)',
+      researchKeywordPlaceholder: 'VD: Học sâu, Xử lý ngôn ngữ tự nhiên, IEEE (nhấn Enter)',
       experience: {
         addTitle: 'Thêm kinh nghiệm làm việc',
         editTitle: 'Chỉnh sửa kinh nghiệm làm việc',
@@ -692,6 +725,14 @@ export const translations = {
         editTitle: 'Chỉnh sửa dự án',
         projectName: 'Tên dự án',
         keywords: 'Từ khóa / Công nghệ sử dụng',
+      },
+      research: {
+        addTitle: 'Thêm nghiên cứu khoa học',
+        editTitle: 'Chỉnh sửa nghiên cứu khoa học',
+        researchTitle: 'Tên đề tài / Công trình nghiên cứu',
+        role: 'Vai trò / Tác giả',
+        publisher: 'Tạp chí / Hội nghị / Đơn vị chủ trì',
+        keywords: 'Từ khóa / Lĩnh vực nghiên cứu',
       },
       education: {
         addTitle: 'Thêm học vấn',
@@ -866,6 +907,9 @@ export const translations = {
       jsonOptionTitle: 'Bản sao lưu CVMaster (.json)',
       jsonOptionDesc:
         'Lưu trữ dữ liệu CV có cấu trúc để nhập lại và tiếp tục chỉnh sửa bất cứ lúc nào.',
+      exportBySectionTitle: 'Xuất theo từng mục (.json)',
+      exportBySectionDesc:
+        'Xuất riêng lẻ từng mục (Kinh nghiệm, Dự án, Kỹ năng...) thành file JSON độc lập.',
       jsonExportedTitle: 'Đã xuất tệp JSON',
       jsonExportedDesc: 'Bản sao lưu dữ liệu CV (.json) của bạn đã được tải xuống.',
       exportFailedTitle: 'Xuất tệp thất bại',
@@ -1016,6 +1060,22 @@ export const translations = {
       addSingleButton: 'Thêm 1 mục',
       successToastTitle: 'Đã thêm thành công',
       successToastDesc: 'Đã thêm {count} mục vào {section}.',
+    },
+    exportSectionJson: {
+      dialogTitle: 'Xuất {section} dạng JSON',
+      dialogDesc: 'Xem, sao chép hoặc tải xuống dữ liệu JSON của mục này.',
+      selectSection: 'Chọn mục',
+      formatLabel: 'Cấu trúc JSON',
+      formatArray: 'Mảng danh sách [ ... ]',
+      formatWrapped: 'Đối tượng bọc { "{section}": [ ... ] }',
+      excludeHidden: 'Bỏ qua các mục đang ẩn trên CV',
+      copiedToastTitle: 'Đã sao chép vào bộ nhớ tạm',
+      copiedToastDesc: 'Dữ liệu JSON của {section} đã được sao chép.',
+      downloadJson: 'Tải xuống .json',
+      copyJson: 'Sao chép JSON',
+      copied: 'Đã sao chép!',
+      itemCount: '{count} mục',
+      emptyState: 'Mục này hiện chưa có dữ liệu để xuất.',
     },
   },
 } as const;

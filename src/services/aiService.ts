@@ -1440,6 +1440,7 @@ const SECTION_TITLES_VI: Record<string, string> = {
   summary: 'Tóm tắt chuyên môn',
   experience: 'Kinh nghiệm làm việc',
   projects: 'Dự án',
+  research: 'Nghiên cứu khoa học',
   education: 'Học vấn',
   skills: 'Kỹ năng chuyên môn',
   softSkills: 'Kỹ năng mềm',
@@ -1454,6 +1455,7 @@ const SECTION_TITLES_EN: Record<string, string> = {
   summary: 'Summary',
   experience: 'Experience',
   projects: 'Projects',
+  research: 'Research',
   education: 'Education',
   skills: 'Skills',
   softSkills: 'Soft Skills',
@@ -1682,6 +1684,18 @@ export function getLocalResumeTranslationFallback(
     summary: translatePhrase(item.summary, toVi),
   }));
 
+  const translatedResearch = (resumeData.research || []).map((item) => ({
+    ...item,
+    role: item.role ? translatePhrase(item.role, toVi) : item.role,
+    publisher: item.publisher
+      ? translatePhrase(item.publisher, toVi)
+      : item.publisher,
+    description: item.description
+      ? translatePhrase(item.description, toVi)
+      : item.description,
+    summary: translatePhrase(item.summary, toVi),
+  }));
+
   const translatedEducation = resumeData.education.map((item) => ({
     ...item,
     degree: translatePhrase(item.degree, toVi),
@@ -1742,6 +1756,7 @@ export function getLocalResumeTranslationFallback(
     sectionTitles: translatedSectionTitles,
     experience: translatedExperience,
     projects: translatedProjects,
+    research: translatedResearch,
     education: translatedEducation,
     skills: translatedSkills,
     softSkills: translatedSoftSkills,

@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
   CheckCircle2,
+  FileCode,
   FileDown,
   FileJson,
   Loader2,
@@ -14,6 +15,7 @@ import {
 } from '@/components/ui/primitives';
 import { toast } from '@/components/ui/toast';
 import { ResumeSheet } from '@/components/preview/ResumeSheet';
+import { ExportSectionJsonDialog } from '@/components/modals/ExportSectionJsonDialog';
 import { useLanguage } from '@/context/LanguageContext';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import {
@@ -36,6 +38,7 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
   const { t } = useLanguage();
   const printSheetRef = useRef<HTMLDivElement | null>(null);
   const [exportStatus, setExportStatus] = useState<ExportStatus>('idle');
+  const [sectionExportOpen, setSectionExportOpen] = useState(false);
 
   const handleDownloadJson = () => {
     try {
@@ -125,7 +128,8 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
   };
 
   return (
-    <Dialog
+    <>
+      <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
         if (exportStatus === 'generating') return;
@@ -195,6 +199,28 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
                 </p>
               </div>
             </button>
+
+            <button
+              type="button"
+              data-testid="download-by-section-btn"
+              onClick={() => {
+                onOpenChange(false);
+                setSectionExportOpen(true);
+              }}
+              className="flex items-start gap-3.5 rounded-lg border border-border bg-card p-4 text-left transition-colors hover:border-primary/50 hover:bg-accent/40"
+            >
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <FileCode className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold">
+                  {t('download.exportBySectionTitle')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t('download.exportBySectionDesc')}
+                </p>
+              </div>
+            </button>
           </div>
         )}
 
@@ -204,5 +230,11 @@ export function DownloadDialog({ open, onOpenChange }: DownloadDialogProps) {
         </div>
       </DialogContent>
     </Dialog>
+
+    <ExportSectionJsonDialog
+      open={sectionExportOpen}
+      onOpenChange={setSectionExportOpen}
+    />
+    </>
   );
 }

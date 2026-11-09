@@ -245,6 +245,51 @@ describe('Phase 5 Quality Assurance — Workflows, Responsive UI, Persistence, P
     expect(enResume.sectionTitles.softSkills).toBe('Soft Skills');
   });
 
+  it('supports full lifecycle, rendering, and translations for the research (Nghiên cứu khoa học) section', async () => {
+    const store = useResumeStore.getState();
+
+    // 1. Add a research item
+    store.addSectionItem('research', {
+      id: 'res-qa-1',
+      name: 'Deep Learning for Real-Time Medical Imaging',
+      role: 'Lead Researcher / First Author',
+      publisher: 'IEEE Access',
+      description: 'IEEE Access',
+      date: '2024',
+      website: 'https://doi.org/10.1109/ACCESS.2024.00001',
+      summary: '<p>Proposed an attention-based segmentation model.</p>',
+      keywords: ['Deep Learning', 'PyTorch', 'Medical Imaging'],
+    });
+
+    const updated = useResumeStore.getState().resumeData;
+    expect(updated.research.some((i) => i.id === 'res-qa-1')).toBe(true);
+    expect(updated.sectionTitles.research).toBe('Research');
+
+    // 2. Render in ResumeSheet
+    const { unmount } = render(<ResumeSheet mode="preview" />);
+    expect(screen.getByText('Research')).toBeInTheDocument();
+    expect(
+      screen.getByText('Deep Learning for Real-Time Medical Imaging')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Lead Researcher / First Author')
+    ).toBeInTheDocument();
+    expect(screen.getByText(/IEEE Access/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Deep Learning, PyTorch, Medical Imaging/)
+    ).toBeInTheDocument();
+    unmount();
+
+    // 3. Translate to Vietnamese
+    const viResume = await translateResume(updated, 'vi');
+    expect(viResume.sectionTitles.research).toBe('Nghiên cứu khoa học');
+    expect(viResume.research).toHaveLength(1);
+
+    // 4. Translate back to English
+    const enResume = await translateResume(viResume, 'en');
+    expect(enResume.sectionTitles.research).toBe('Research');
+  });
+
   it('adapts UI layout across desktop (>= 1024px) and mobile (< 1024px) viewports and persists theme state', () => {
     // 1. Mobile viewport (< 1024px)
     Object.defineProperty(window, 'innerWidth', {

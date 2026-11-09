@@ -4,6 +4,7 @@ export type SectionKey =
   | "summary"
   | "experience"
   | "projects"
+  | "research"
   | "education"
   | "skills"
   | "softSkills"
@@ -50,6 +51,7 @@ export type SoftSkillItem = SkillItem;
 export type SectionItemUnion =
   | ExperienceItem
   | ProjectItem
+  | ResearchItem
   | EducationItem
   | SkillItem
   | SoftSkillItem
@@ -109,6 +111,19 @@ export interface ProjectItem {
   id: string;
   name: string;
   description: string;
+  date: string;
+  website: string;
+  summary: string;
+  keywords: string[];
+  keyword?: string;
+}
+
+export interface ResearchItem {
+  id: string;
+  name: string;
+  role?: string;
+  publisher?: string;
+  description?: string;
   date: string;
   website: string;
   summary: string;
@@ -191,6 +206,7 @@ export interface ResumeData {
   summary: SummaryData;
   experience: ExperienceItem[];
   projects: ProjectItem[];
+  research: ResearchItem[];
   education: EducationItem[];
   skills: SkillItem[];
   softSkills: SkillItem[];

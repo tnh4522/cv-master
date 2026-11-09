@@ -21,6 +21,7 @@ export const DEFAULT_SECTION_ORDER: SectionKey[] = [
   "summary",
   "experience",
   "projects",
+  "research",
   "education",
   "skills",
   "softSkills",
@@ -81,6 +82,7 @@ export const DEFAULT_RESUME_DATA: ResumeData = {
       keywords: ["React", "TypeScript", "Tailwind CSS"],
     },
   ],
+  research: [],
   education: [
     {
       id: "edu-default-1",
@@ -131,6 +133,7 @@ export const DEFAULT_RESUME_DATA: ResumeData = {
     summary: "Summary",
     experience: "Experience",
     projects: "Projects",
+    research: "Research",
     education: "Education",
     skills: "Skills",
     softSkills: "Soft Skills",
@@ -146,6 +149,7 @@ export const DEFAULT_SECTION_TITLES_EN: Record<SectionKey, string> = {
   summary: "Summary",
   experience: "Experience",
   projects: "Projects",
+  research: "Research",
   education: "Education",
   skills: "Skills",
   softSkills: "Soft Skills",
@@ -160,6 +164,7 @@ export const DEFAULT_SECTION_TITLES_VI: Record<SectionKey, string> = {
   summary: "Tóm tắt chuyên môn",
   experience: "Kinh nghiệm làm việc",
   projects: "Dự án",
+  research: "Nghiên cứu khoa học",
   education: "Học vấn",
   skills: "Kỹ năng chuyên môn",
   softSkills: "Kỹ năng mềm",
@@ -261,6 +266,9 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
     softSkills: Array.isArray(persisted?.softSkills)
       ? persisted.softSkills
       : DEFAULT_RESUME_DATA.softSkills,
+    research: Array.isArray(persisted?.research)
+      ? persisted.research
+      : DEFAULT_RESUME_DATA.research,
     interests: Array.isArray(persisted?.interests)
       ? persisted.interests
       : DEFAULT_RESUME_DATA.interests,
@@ -732,10 +740,26 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
 }));
 
 const persistedPdfSettings = readLocalStorage<Partial<PdfSettings>>("pdfSetting");
-if (persistedPdfSettings && persistedPdfSettings.skillsLayout === undefined) {
-  persistedPdfSettings.skillsLayout = "inline";
-  if (typeof window !== "undefined") {
-    localStorage.setItem("pdfSetting", JSON.stringify(persistedPdfSettings));
+if (persistedPdfSettings) {
+  let hasChanges = false;
+  if (persistedPdfSettings.skillsLayout === undefined) {
+    persistedPdfSettings.skillsLayout = "inline";
+    hasChanges = true;
+  }
+  if (
+    persistedPdfSettings.lineHeight === undefined ||
+    typeof persistedPdfSettings.lineHeight !== "number" ||
+    Number.isNaN(persistedPdfSettings.lineHeight)
+  ) {
+    persistedPdfSettings.lineHeight = DEFAULT_PDF_SETTINGS.lineHeight; // 5 -> 1.25rem
+    hasChanges = true;
+  }
+  if (hasChanges && typeof window !== "undefined") {
+    try {
+      localStorage.setItem("pdfSetting", JSON.stringify(persistedPdfSettings));
+    } catch {
+      // ignore
+    }
   }
 }
 
@@ -750,6 +774,11 @@ export const usePdfSettingsStore = create<PdfSettingsStoreState>((set) => ({
   pdfSettings: {
     ...DEFAULT_PDF_SETTINGS,
     ...persistedPdfSettings,
+    lineHeight:
+      typeof persistedPdfSettings?.lineHeight === "number" &&
+      !Number.isNaN(persistedPdfSettings.lineHeight)
+        ? persistedPdfSettings.lineHeight
+        : DEFAULT_PDF_SETTINGS.lineHeight,
     margin: normalizeMargin(persistedPdfSettings?.margin),
   },
   setValue: (key, value) => {
