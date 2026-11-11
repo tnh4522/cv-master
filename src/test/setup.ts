@@ -80,4 +80,13 @@ if (typeof window !== 'undefined') {
       }),
     });
   }
+
+  if (typeof URL !== 'undefined') {
+    if (typeof URL.createObjectURL !== 'function') {
+      URL.createObjectURL = () => 'blob:mock-pdf-object-url';
+    }
+    if (typeof URL.revokeObjectURL !== 'function') {
+      URL.revokeObjectURL = () => {};
+    }
+  }
 }

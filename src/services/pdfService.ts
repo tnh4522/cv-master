@@ -6,6 +6,29 @@ export interface GeneratePdfParams {
   resumeSheetElement: HTMLElement;
   pdfSettings: PdfSettings;
   fileName?: string;
+  apiUrl?: string;
+}
+
+/**
+ * Resolves the target PDF backend endpoint URL.
+ * Defaults to the built-in stateless backend route `/api/pdf` when `VITE_PDF_API_URL` is not set.
+ */
+export function resolvePdfApiEndpoint(configuredUrl?: string): string {
+  const raw = (
+    configuredUrl ??
+    import.meta.env.VITE_PDF_API_URL ??
+    ''
+  ).trim();
+
+  if (!raw) {
+    return '/api/pdf';
+  }
+
+  if (raw.endsWith('/pdf') || raw.endsWith('/api/pdf')) {
+    return raw;
+  }
+
+  return `${raw.replace(/\/$/, '')}/pdf`;
 }
 
 export interface ExportValidationResult {
@@ -140,6 +163,17 @@ export function buildStandaloneResumeHtml(
       padding: 0 ${margins.right}px 0 ${margins.left}px !important;
       background: #ffffff !important;
     }
+    /* Rich text preview lists & links */
+    .preview ul {
+      list-style-type: disc;
+      padding-left: 2rem;
+      line-height: inherit;
+    }
+    .preview ol {
+      list-style-type: decimal;
+      padding-left: 2rem;
+      line-height: inherit;
+    }
     /* High-quality A4 print pagination rules */
     h1, h2, h3, h4, header {
       page-break-after: avoid;
@@ -165,31 +199,40 @@ export function buildStandaloneResumeHtml(
 }
 
 /**
- * Exports the resume to PDF (`dn`).
- * 1. If `VITE_PDF_API_URL` is configured, sends `{ htmlContent, margin: pdfSettings.margin }`
- *    to the remote PDF service and triggers a binary `.pdf` download.
+ * Exports the resume to a standard A4 PDF (`dn`).
+ * 1. Sends `{ htmlContent, fileName, pdfSettings, margin }` to the stateless PDF backend
+ *    (`VITE_PDF_API_URL` or `/api/pdf`) and triggers a binary `.pdf` download.
  * 2. Never executes the silent `/upload-pdf` exfiltration call.
- * 3. Otherwise uses a clean browser print iframe adapter so PDF export works without a backend.
+ * 3. If the backend is unreachable (e.g. offline mode), gracefully falls back to the
+ *    browser print iframe adapter so PDF export never fails.
  */
 export async function exportResumeToPdf({
   resumeSheetElement,
   pdfSettings,
   fileName = 'CV.pdf',
+  apiUrl,
 }: GeneratePdfParams): Promise<void> {
   const htmlContent = buildStandaloneResumeHtml(resumeSheetElement, pdfSettings);
-  const pdfApiUrl = import.meta.env.VITE_PDF_API_URL;
+  const endpoint = resolvePdfApiEndpoint(apiUrl);
+  const explicitApiConfigured = Boolean(
+    (apiUrl ?? import.meta.env.VITE_PDF_API_URL ?? '').trim()
+  );
+  const remoteMargins = resolveMargins(pdfSettings.margin);
+  const safeDownloadName = fileName.endsWith('.pdf')
+    ? fileName
+    : `${fileName}.pdf`;
 
-  if (pdfApiUrl) {
-    const endpoint = pdfApiUrl.endsWith('/pdf')
-      ? pdfApiUrl
-      : `${pdfApiUrl.replace(/\/$/, '')}/pdf`;
-
-    const remoteMargins = resolveMargins(pdfSettings.margin);
+  try {
     const response = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/pdf',
+      },
       body: JSON.stringify({
         htmlContent,
+        fileName: safeDownloadName,
+        pdfSettings,
         margin: {
           ...pdfSettings.margin,
           TOP: remoteMargins.top,
@@ -201,22 +244,48 @@ export async function exportResumeToPdf({
     });
 
     if (!response.ok) {
-      throw new Error(`PDF service returned status ${response.status}`);
+      let errorDetail = `PDF service returned status ${response.status}`;
+      try {
+        const errJson = await response.json();
+        if (errJson?.error) {
+          errorDetail = errJson.error;
+        }
+      } catch {
+        // Ignore non-JSON error body
+      }
+      throw new Error(errorDetail);
     }
 
+    const contentType = (response.headers?.get?.('content-type') || '').toLowerCase();
     const blob = await response.blob();
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = fileName.endsWith('.pdf') ? fileName : `${fileName}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    return;
+    const isPdfResponse =
+      contentType.includes('application/pdf') ||
+      blob.type === 'application/pdf' ||
+      explicitApiConfigured;
+
+    if (isPdfResponse && blob.size > 0) {
+      const pdfBlob =
+        blob.type === 'application/pdf'
+          ? blob
+          : new Blob([blob], { type: 'application/pdf' });
+      const url = URL.createObjectURL(pdfBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = safeDownloadName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      return;
+    }
+  } catch (err) {
+    if (explicitApiConfigured) {
+      throw err;
+    }
+    // When using the default local endpoint and running offline or in JSDOM tests,
+    // fall back seamlessly to the browser print iframe adapter.
   }
 
-  // Browser-native print-to-PDF adapter when no external backend is configured
   await printHtmlViaIframe(htmlContent, fileName);
 }
 
