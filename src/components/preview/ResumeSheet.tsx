@@ -3,7 +3,7 @@ import { Mail, Globe, Phone, MapPin, Calendar } from 'lucide-react';
 import { CustomFieldIcon, LinkedInIcon } from '@/components/icons/CustomIcons';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import { loadFontStylesheet } from '@/services/fontsService';
-import { A4_HEIGHT_PX, A4_WIDTH_PX, resolveMargins } from '@/lib/utils';
+import { A4_HEIGHT_PX, A4_WIDTH_PX, isDobCustomField, resolveMargins } from '@/lib/utils';
 import type { SectionKey } from '@/types/resume';
 import { useLanguage } from '@/context/LanguageContext';
 
@@ -985,49 +985,56 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                   </div>
                 )}
 
-                {/* Legacy Custom Fields fallback (if any persisted from previous imports) */}
-                {basics.customFields && basics.customFields.length > 0 && (
-                  <div
-                    className={`flex flex-wrap items-center gap-x-3 w-full ${alignmentJustifyClass}`}
-                    style={{
-                      lineHeight: lineHeightStyle,
-                      minHeight: lineHeightStyle,
-                      rowGap: `${Math.max(2, (safeLineHeight - 4) * 2 + 2)}px`,
-                    }}
-                  >
-                    {basics.customFields.map((field) => {
-                      if (!field.name && !field.value) return null;
-                      const display = field.name || field.value;
-                      return (
-                        <span key={field.id} className="inline-flex items-center gap-1">
-                          {field.iconName && (
-                            <CustomFieldIcon
-                              iconName={field.iconName}
-                              size={14}
-                              className="shrink-0 text-neutral-600"
-                            />
-                          )}
-                          {isUrlValue(field.value) ? (
-                            <a
-                              href={normalizeHref(field.value)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="hover:underline"
-                            >
-                              {display}
-                            </a>
-                          ) : (
-                            <span>
-                              {field.name && field.value
-                                ? `${field.name}: ${field.value}`
-                                : display}
-                            </span>
-                          )}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
+                {/* Legacy Custom Fields fallback (if any persisted from previous imports, excluding duplicate DOB) */}
+                {(() => {
+                  const filteredCustomFields = (basics.customFields || []).filter(
+                    (field) => !isDobCustomField(field, basics.dateOfBirth?.value)
+                  );
+                  if (filteredCustomFields.length === 0) return null;
+
+                  return (
+                    <div
+                      className={`flex flex-wrap items-center gap-x-3 w-full ${alignmentJustifyClass}`}
+                      style={{
+                        lineHeight: lineHeightStyle,
+                        minHeight: lineHeightStyle,
+                        rowGap: `${Math.max(2, (safeLineHeight - 4) * 2 + 2)}px`,
+                      }}
+                    >
+                      {filteredCustomFields.map((field) => {
+                        if (!field.name && !field.value) return null;
+                        const display = field.name || field.value;
+                        return (
+                          <span key={field.id} className="inline-flex items-center gap-1">
+                            {field.iconName && (
+                              <CustomFieldIcon
+                                iconName={field.iconName}
+                                size={14}
+                                className="shrink-0 text-neutral-600"
+                              />
+                            )}
+                            {isUrlValue(field.value) ? (
+                              <a
+                                href={normalizeHref(field.value)}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="hover:underline"
+                              >
+                                {display}
+                              </a>
+                            ) : (
+                              <span>
+                                {field.name && field.value
+                                  ? `${field.name}: ${field.value}`
+                                  : display}
+                              </span>
+                            )}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           </header>

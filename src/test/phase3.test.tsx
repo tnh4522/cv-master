@@ -720,4 +720,58 @@ describe('Phase 3 Import & Export — PDF, Image, JSON & Profile Photo Adapters'
     expect(merged.awards).toHaveLength(1);
     expect(merged.interests).toHaveLength(1);
   });
+
+  it('migrates and strips legacy DOB custom fields during JSON parse and CV merge', () => {
+    const parsedIncoming = parseCvJsonForMerge({
+      basics: {
+        name: 'Trần Ngọc Huy',
+        customFields: [
+          {
+            id: 'cf-dob-legacy',
+            name: 'Ngày sinh',
+            iconName: 'link',
+            value: '04/05/2002',
+          },
+          {
+            id: 'cf-gh',
+            name: 'GitHub',
+            iconName: 'github',
+            value: 'https://github.com/tranhuy',
+          },
+        ],
+      },
+    });
+
+    expect(parsedIncoming.basics?.dateOfBirth?.value).toBe('04/05/2002');
+    expect(parsedIncoming.basics?.customFields).toHaveLength(1);
+    expect(parsedIncoming.basics?.customFields[0].name).toBe('GitHub');
+
+    const store = useResumeStore.getState();
+    store.setResumeData({
+      ...store.resumeData,
+      basics: {
+        ...store.resumeData.basics,
+        dateOfBirth: { value: '04/05/2002', breakAfter: false },
+        customFields: [],
+      },
+    });
+
+    const mergeRes = store.mergeResumeData({
+      basics: {
+        ...store.resumeData.basics,
+        dateOfBirth: { value: '04/05/2002', breakAfter: false },
+        customFields: [
+          {
+            id: 'cf-dob-incoming',
+            name: 'Ngày sinh',
+            iconName: 'link',
+            value: '04/05/2002',
+          },
+        ],
+      },
+    });
+
+    expect(mergeRes.mergedData.basics.dateOfBirth?.value).toBe('04/05/2002');
+    expect(mergeRes.mergedData.basics.customFields).toHaveLength(0);
+  });
 });

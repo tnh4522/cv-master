@@ -20,6 +20,7 @@ import {
   DEFAULT_RESUME_DATA,
   DEFAULT_SECTION_ORDER,
 } from '@/store/useResumeStore';
+import { isDobCustomField } from '@/lib/utils';
 
 export const LIST_SECTION_KEYS: ListSectionKey[] = [
   'experience',
@@ -192,6 +193,53 @@ export function parseCvJsonForMerge(
     const rawDob = b.dateOfBirth;
     const rawPhoto = b.photo as Record<string, unknown> | undefined;
 
+    let resolvedDobValue =
+      typeof rawDob === 'string'
+        ? rawDob
+        : rawDob &&
+          typeof rawDob === 'object' &&
+          typeof (rawDob as Record<string, unknown>).value === 'string'
+        ? String((rawDob as Record<string, unknown>).value)
+        : '';
+    let resolvedDobBreakAfter = Boolean(
+      rawDob &&
+        typeof rawDob === 'object' &&
+        (rawDob as Record<string, unknown>).breakAfter
+    );
+
+    const normalizedCustomFields = Array.isArray(b.customFields)
+      ? b.customFields
+          .filter((cf) => cf && typeof cf === 'object')
+          .map((cf, idx) => {
+            const item = cf as Record<string, unknown>;
+            return {
+              id:
+                typeof item.id === 'string' && item.id.trim()
+                  ? item.id
+                  : `cf-import-${idx}`,
+              name: typeof item.name === 'string' ? item.name : '',
+              iconName:
+                typeof item.iconName === 'string' && item.iconName.trim()
+                  ? item.iconName
+                  : 'link',
+              value: typeof item.value === 'string' ? item.value : '',
+              breakAfter: Boolean(item.breakAfter),
+            };
+          })
+      : [];
+
+    const legacyDobCf = normalizedCustomFields.find((cf) =>
+      isDobCustomField(cf, resolvedDobValue)
+    );
+    if (!resolvedDobValue.trim() && legacyDobCf?.value?.trim()) {
+      resolvedDobValue = legacyDobCf.value.trim();
+      resolvedDobBreakAfter = legacyDobCf.breakAfter ?? false;
+    }
+
+    const cleanCustomFields = normalizedCustomFields.filter(
+      (cf) => !isDobCustomField(cf, resolvedDobValue)
+    );
+
     result.basics = {
       name: typeof b.name === 'string' ? b.name : '',
       title: typeof b.title === 'string' ? b.title : '',
@@ -230,42 +278,11 @@ export function parseCvJsonForMerge(
                   (rawLocation as Record<string, unknown>).breakAfter
               ),
             },
-      dateOfBirth:
-        typeof rawDob === 'string'
-          ? { value: rawDob, breakAfter: false }
-          : {
-              value:
-                rawDob &&
-                typeof rawDob === 'object' &&
-                typeof (rawDob as Record<string, unknown>).value === 'string'
-                  ? String((rawDob as Record<string, unknown>).value)
-                  : '',
-              breakAfter: Boolean(
-                rawDob &&
-                  typeof rawDob === 'object' &&
-                  (rawDob as Record<string, unknown>).breakAfter
-              ),
-            },
-      customFields: Array.isArray(b.customFields)
-        ? b.customFields
-            .filter((cf) => cf && typeof cf === 'object')
-            .map((cf, idx) => {
-              const item = cf as Record<string, unknown>;
-              return {
-                id:
-                  typeof item.id === 'string' && item.id.trim()
-                    ? item.id
-                    : `cf-import-${idx}`,
-                name: typeof item.name === 'string' ? item.name : '',
-                iconName:
-                  typeof item.iconName === 'string' && item.iconName.trim()
-                    ? item.iconName
-                    : 'link',
-                value: typeof item.value === 'string' ? item.value : '',
-                breakAfter: Boolean(item.breakAfter),
-              };
-            })
-        : [],
+      dateOfBirth: {
+        value: resolvedDobValue,
+        breakAfter: resolvedDobBreakAfter,
+      },
+      customFields: cleanCustomFields,
       alignment:
         b.alignment === 'start' ||
         b.alignment === 'center' ||
@@ -664,15 +681,27 @@ export function mergeResumeData(
   const sectionStats = createInitialSectionStats();
 
   // 1. Merge Basics
+  const baseLegacyDob = base.basics.customFields.find((cf) =>
+    isDobCustomField(cf, base.basics.dateOfBirth?.value)
+  );
+  const resolvedBaseDob =
+    (base.basics.dateOfBirth?.value || '').trim() ||
+    (baseLegacyDob?.value || '').trim();
+
   const mergedBasics: BasicsData = {
     ...base.basics,
     phone: { ...base.basics.phone },
     location: { ...base.basics.location },
-    dateOfBirth: base.basics.dateOfBirth
-      ? { ...base.basics.dateOfBirth }
-      : { value: '', breakAfter: false },
+    dateOfBirth: {
+      value: resolvedBaseDob,
+      breakAfter: Boolean(
+        base.basics.dateOfBirth?.breakAfter ?? baseLegacyDob?.breakAfter
+      ),
+    },
     photo: { ...base.basics.photo },
-    customFields: base.basics.customFields.map((cf) => ({ ...cf })),
+    customFields: base.basics.customFields
+      .filter((cf) => !isDobCustomField(cf, resolvedBaseDob))
+      .map((cf) => ({ ...cf })),
   };
 
   if (incoming.basics) {
@@ -760,6 +789,28 @@ export function mergeResumeData(
       const usedCfIds = new Set(mergedBasics.customFields.map((c) => c.id));
       for (const incCf of incB.customFields) {
         if (!incCf || (isMissingText(incCf.name) && isMissingText(incCf.value))) {
+          continue;
+        }
+        if (isDobCustomField(incCf, mergedBasics.dateOfBirth?.value)) {
+          if (
+            isMissingText(
+              mergedBasics.dateOfBirth?.value,
+              defB.dateOfBirth?.value,
+              replaceDefaults
+            ) &&
+            !isMissingText(incCf.value)
+          ) {
+            mergedBasics.dateOfBirth = {
+              value: incCf.value.trim(),
+              breakAfter:
+                incCf.breakAfter ??
+                mergedBasics.dateOfBirth?.breakAfter ??
+                false,
+            };
+            if (!filledBasicsFields.includes('dateOfBirth')) {
+              filledBasicsFields.push('dateOfBirth');
+            }
+          }
           continue;
         }
         const incNameKey = normalizeComparisonKey(incCf.name);

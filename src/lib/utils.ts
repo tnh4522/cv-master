@@ -6,6 +6,77 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Detects whether a legacy or imported custom field corresponds to date of birth.
+ * This prevents displaying the date of birth twice when the dedicated dateOfBirth
+ * field is already present in `basics`.
+ */
+export function isDobCustomField(
+  field?: { name?: string; value?: string; iconName?: string } | null,
+  currentDob?: string
+): boolean {
+  if (!field) return false;
+
+  const rawName = (field.name || '').trim();
+  const rawValue = (field.value || '').trim();
+
+  // Normalize: lower-case, strip diacritics/accents, remove non-alphanumeric except spaces
+  const cleanName = rawName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  const dobKeywords = [
+    'ngay sinh',
+    'sinh nhat',
+    'nam sinh',
+    'ngay thang nam sinh',
+    'date of birth',
+    'birth date',
+    'birthdate',
+    'birthday',
+    'dob',
+  ];
+
+  const matchesKeyword = dobKeywords.some(
+    (kw) =>
+      cleanName === kw ||
+      cleanName.startsWith(`${kw} `) ||
+      cleanName.endsWith(` ${kw}`) ||
+      cleanName === `${kw}s`
+  );
+
+  if (matchesKeyword) {
+    return true;
+  }
+
+  // If icon is calendar and name contains birth or is empty
+  if (
+    field.iconName === 'calendar' &&
+    (cleanName.includes('sinh') || cleanName.includes('birth') || !cleanName)
+  ) {
+    return true;
+  }
+
+  // If current dateOfBirth has the same non-empty value
+  const normCurrentDob = (currentDob || '').trim();
+  if (normCurrentDob && rawValue && normCurrentDob === rawValue) {
+    if (
+      !cleanName ||
+      cleanName.includes('sinh') ||
+      cleanName.includes('birth') ||
+      cleanName.includes('dob')
+    ) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 export const CONFIG = {
   SCALE: {
     MIN: 0.4,

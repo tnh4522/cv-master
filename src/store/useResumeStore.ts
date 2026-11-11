@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { CONFIG, resolveMargins } from "@/lib/utils";
+import { CONFIG, isDobCustomField, resolveMargins } from "@/lib/utils";
 import {
   mergeResumeData as computeMergedResumeData,
   mergeMultipleResumes as computeMultipleMergedResumes,
@@ -259,6 +259,20 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
       : {}),
   };
 
+  const rawCustomFields = Array.isArray(persisted?.basics?.customFields)
+    ? persisted.basics.customFields
+    : DEFAULT_RESUME_DATA.basics.customFields;
+
+  const existingDobValue = persisted?.basics?.dateOfBirth?.value ?? "";
+  const legacyDobField = rawCustomFields.find((cf) =>
+    isDobCustomField(cf, existingDobValue)
+  );
+  const resolvedDobValue =
+    existingDobValue.trim() || (legacyDobField?.value || "").trim();
+  const cleanCustomFields = rawCustomFields.filter(
+    (cf) => !isDobCustomField(cf, resolvedDobValue)
+  );
+
   return {
     ...DEFAULT_RESUME_DATA,
     cvLanguage: persisted?.cvLanguage ?? DEFAULT_RESUME_DATA.cvLanguage ?? "en",
@@ -284,14 +298,16 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
         ...(persisted?.basics?.location || {}),
       },
       dateOfBirth: {
-        value: persisted?.basics?.dateOfBirth?.value ?? "",
-        breakAfter: Boolean(persisted?.basics?.dateOfBirth?.breakAfter),
+        value: resolvedDobValue,
+        breakAfter: Boolean(
+          persisted?.basics?.dateOfBirth?.breakAfter ?? legacyDobField?.breakAfter
+        ),
       },
       photo: {
         ...DEFAULT_RESUME_DATA.basics.photo,
         ...(persisted?.basics?.photo || {}),
       },
-      customFields: persisted?.basics?.customFields ?? DEFAULT_RESUME_DATA.basics.customFields,
+      customFields: cleanCustomFields,
     },
     summary: mergedSummary,
     hiddenSections:
@@ -348,6 +364,20 @@ export interface ResumeStoreState {
   resetResume: () => void;
 }
 
+const hydratedResumeData = buildMergedResumeData(persistedResumeData);
+if (
+  persistedResumeData?.basics?.customFields &&
+  persistedResumeData.basics.customFields.some((cf) =>
+    isDobCustomField(cf, persistedResumeData.basics?.dateOfBirth?.value)
+  )
+) {
+  try {
+    localStorage.setItem("resumeData", JSON.stringify(hydratedResumeData));
+  } catch {
+    // ignore storage errors
+  }
+}
+
 export const useResumeStore = create<ResumeStoreState>((set, get) => ({
   sectionOrder: buildMergedSectionOrder(persistedSectionOrder?.sectionOrder),
   hiddenItemIds: persistedHiddenIds?.hiddenItemIds ?? [],
@@ -357,7 +387,7 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
       : Array.isArray(persistedResumeData?.hiddenSections)
       ? (persistedResumeData.hiddenSections as SectionKey[])
       : []) as SectionKey[],
-  resumeData: buildMergedResumeData(persistedResumeData),
+  resumeData: hydratedResumeData,
 
   setData: (partial) => {
     set((state) => {
@@ -488,12 +518,18 @@ export const useResumeStore = create<ResumeStoreState>((set, get) => ({
 
   updateBasics: (patch) => {
     set((state) => {
+      const nextBasics = {
+        ...state.resumeData.basics,
+        ...patch,
+      };
+      if (Array.isArray(nextBasics.customFields)) {
+        nextBasics.customFields = nextBasics.customFields.filter(
+          (cf) => !isDobCustomField(cf, nextBasics.dateOfBirth?.value)
+        );
+      }
       const nextResumeData: ResumeData = {
         ...state.resumeData,
-        basics: {
-          ...state.resumeData.basics,
-          ...patch,
-        },
+        basics: nextBasics,
       };
       localStorage.setItem("resumeData", JSON.stringify(nextResumeData));
       return { resumeData: nextResumeData };

@@ -327,4 +327,102 @@ describe('Phase 2 Core Implementation — Stores, Schemas, Editor & Preview', ()
     rerender(<ResumeSheet mode="preview" />);
     expect(screen.getByText(store.resumeData.sectionTitles.experience)).toBeInTheDocument();
   });
+
+  it('prevents duplicate date of birth display by removing legacy DOB customFields and migrating when needed', () => {
+    const store = useResumeStore.getState();
+
+    // Case 1: Both dateOfBirth and legacy "Ngày sinh" custom field exist
+    act(() => {
+      store.setResumeData({
+        ...store.resumeData,
+        basics: {
+          ...store.resumeData.basics,
+          name: 'Trần Ngọc Huy',
+          dateOfBirth: { value: '04/05/2002', breakAfter: false },
+          customFields: [
+            {
+              id: 'cf-dob',
+              name: 'Ngày sinh',
+              iconName: 'link',
+              value: '04/05/2002',
+              breakAfter: false,
+            },
+            {
+              id: 'cf-gh',
+              name: 'GitHub',
+              iconName: 'github',
+              value: 'https://github.com/tranhuy',
+              breakAfter: false,
+            },
+          ],
+        },
+      });
+    });
+
+    // Store should have cleaned up the duplicate DOB custom field while keeping non-DOB custom fields
+    const cleanedBasics = useResumeStore.getState().resumeData.basics;
+    expect(cleanedBasics.dateOfBirth?.value).toBe('04/05/2002');
+    expect(cleanedBasics.customFields).toHaveLength(1);
+    expect(cleanedBasics.customFields[0].name).toBe('GitHub');
+
+    const { rerender } = render(<ResumeSheet mode="preview" />);
+    // Date of birth should appear only once, and "Ngày sinh: 04/05/2002" line must not exist
+    expect(screen.getAllByText('04/05/2002')).toHaveLength(1);
+    expect(screen.queryByText(/Ngày sinh:/i)).not.toBeInTheDocument();
+    expect(screen.getByText('GitHub')).toBeInTheDocument();
+
+    // Case 2: dateOfBirth is empty, legacy "Date of Birth" custom field has value -> migrates to dateOfBirth
+    act(() => {
+      store.setResumeData({
+        ...store.resumeData,
+        basics: {
+          ...store.resumeData.basics,
+          dateOfBirth: { value: '', breakAfter: false },
+          customFields: [
+            {
+              id: 'cf-dob-en',
+              name: 'Date of Birth',
+              iconName: 'calendar',
+              value: '15/01/1995',
+              breakAfter: false,
+            },
+          ],
+        },
+      });
+    });
+
+    const migratedBasics = useResumeStore.getState().resumeData.basics;
+    expect(migratedBasics.dateOfBirth?.value).toBe('15/01/1995');
+    expect(migratedBasics.customFields).toHaveLength(0);
+
+    rerender(<ResumeSheet mode="preview" />);
+    expect(screen.getAllByText('15/01/1995')).toHaveLength(1);
+    expect(screen.queryByText(/Date of Birth:/i)).not.toBeInTheDocument();
+
+    // Case 3: Even if store state was mutated directly with a legacy DOB custom field, ResumeSheet filters it out
+    act(() => {
+      useResumeStore.setState((s) => ({
+        resumeData: {
+          ...s.resumeData,
+          basics: {
+            ...s.resumeData.basics,
+            dateOfBirth: { value: '04/05/2002', breakAfter: false },
+            customFields: [
+              {
+                id: 'cf-dob-direct',
+                name: 'Ngày sinh',
+                iconName: 'link',
+                value: '04/05/2002',
+                breakAfter: false,
+              },
+            ],
+          },
+        },
+      }));
+    });
+
+    rerender(<ResumeSheet mode="preview" />);
+    expect(screen.getAllByText('04/05/2002')).toHaveLength(1);
+    expect(screen.queryByText(/Ngày sinh:/i)).not.toBeInTheDocument();
+  });
 });
