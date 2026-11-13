@@ -73,6 +73,7 @@ export interface BasicsData {
   title: string;
   email: string;
   linkedin: string;
+  github?: string;
   website: string;
   phone: {
     value: string;

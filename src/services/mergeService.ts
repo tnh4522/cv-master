@@ -245,6 +245,7 @@ export function parseCvJsonForMerge(
       title: typeof b.title === 'string' ? b.title : '',
       email: typeof b.email === 'string' ? b.email : '',
       linkedin: typeof b.linkedin === 'string' ? b.linkedin : '',
+      github: typeof b.github === 'string' ? b.github : '',
       website: typeof b.website === 'string' ? b.website : '',
       phone:
         typeof rawPhone === 'string'
@@ -709,15 +710,15 @@ export function mergeResumeData(
     const defB = DEFAULT_RESUME_DATA.basics;
 
     const scalarFields: Array<
-      keyof Pick<BasicsData, 'name' | 'title' | 'email' | 'linkedin' | 'website'>
-    > = ['name', 'title', 'email', 'linkedin', 'website'];
+      keyof Pick<BasicsData, 'name' | 'title' | 'email' | 'linkedin' | 'github' | 'website'>
+    > = ['name', 'title', 'email', 'linkedin', 'github', 'website'];
 
     for (const field of scalarFields) {
       if (
         isMissingText(mergedBasics[field], defB[field], replaceDefaults) &&
         !isMissingText(incB[field])
       ) {
-        mergedBasics[field] = incB[field].trim();
+        mergedBasics[field] = (incB[field] || '').trim();
         filledBasicsFields.push(field);
       }
     }

@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useRef, useState } from 'react';
 import { Mail, Globe, Phone, MapPin, Calendar } from 'lucide-react';
-import { CustomFieldIcon, LinkedInIcon } from '@/components/icons/CustomIcons';
+import { CustomFieldIcon, GithubIcon, LinkedInIcon } from '@/components/icons/CustomIcons';
 import { usePdfSettingsStore, useResumeStore } from '@/store/useResumeStore';
 import { loadFontStylesheet } from '@/services/fontsService';
 import { A4_HEIGHT_PX, A4_WIDTH_PX, isDobCustomField, resolveMargins } from '@/lib/utils';
@@ -946,8 +946,8 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                   </div>
                 )}
 
-                {/* 2. LinkedIn, Portfolio */}
-                {(basics.linkedin || basics.website) && (
+                {/* 2. LinkedIn, GitHub, Portfolio */}
+                {(basics.linkedin || basics.github || basics.website) && (
                   <div
                     className={`flex flex-wrap items-center gap-x-3 w-full ${alignmentJustifyClass}`}
                     style={{
@@ -969,6 +969,19 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                         </a>
                       </span>
                     )}
+                    {basics.github && (
+                      <span className="inline-flex items-center gap-1">
+                        <GithubIcon size={14} className="shrink-0 text-neutral-600" />
+                        <a
+                          href={normalizeHref(basics.github)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="hover:underline"
+                        >
+                          {basics.github.replace(/^https?:\/\/(www\.)?/i, '')}
+                        </a>
+                      </span>
+                    )}
                     {basics.website && (
                       <span className="inline-flex items-center gap-1">
                         <Globe className="h-3.5 w-3.5 shrink-0 text-neutral-600" />
@@ -985,10 +998,20 @@ export const ResumeSheet = forwardRef<HTMLDivElement, ResumeSheetProps>(
                   </div>
                 )}
 
-                {/* Legacy Custom Fields fallback (if any persisted from previous imports, excluding duplicate DOB) */}
+                {/* Legacy Custom Fields fallback (if any persisted from previous imports, excluding duplicate DOB/GitHub) */}
                 {(() => {
                   const filteredCustomFields = (basics.customFields || []).filter(
-                    (field) => !isDobCustomField(field, basics.dateOfBirth?.value)
+                    (field) => {
+                      if (isDobCustomField(field, basics.dateOfBirth?.value)) return false;
+                      if (
+                        basics.github &&
+                        field.name?.trim().toLowerCase() === 'github' &&
+                        (normalizeHref(field.value) === normalizeHref(basics.github) || !field.value.trim())
+                      ) {
+                        return false;
+                      }
+                      return true;
+                    }
                   );
                   if (filteredCustomFields.length === 0) return null;
 

@@ -268,6 +268,13 @@ describe('Phase 2 Core Implementation — Stores, Schemas, Editor & Preview', ()
     fireEvent.change(dobInput, { target: { value: '15/01/1995' } });
     expect(useResumeStore.getState().resumeData.basics.dateOfBirth?.value).toBe('15/01/1995');
     expect(screen.getByText('15/01/1995')).toBeInTheDocument();
+
+    // Test GitHub URL
+    const githubInput = screen.getByLabelText(/GitHub URL/i) as HTMLInputElement;
+    expect(githubInput).toBeInTheDocument();
+    fireEvent.change(githubInput, { target: { value: 'https://github.com/gracehopper' } });
+    expect(useResumeStore.getState().resumeData.basics.github).toBe('https://github.com/gracehopper');
+    expect(screen.getByText('github.com/gracehopper')).toBeInTheDocument();
   });
 
   it('dynamically applies lineHeight to the entire ResumeSheet and personal info contact header', () => {

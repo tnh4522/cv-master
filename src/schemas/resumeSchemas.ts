@@ -5,6 +5,7 @@ export const basicsFormSchema = z.object({
   title: z.string().trim().min(1, { message: "Title is required" }),
   email: z.string().email(),
   linkedin: z.literal("").or(z.string().url()),
+  github: z.literal("").or(z.string().url()).optional(),
   website: z.literal("").or(z.string().url()),
   phone: z.object({
     value: z.string(),
@@ -135,6 +136,7 @@ export const importBasicsSchema = z.object({
   title: z.string(),
   email: z.string().optional().default(""),
   linkedin: z.string().optional().default(""),
+  github: z.string().optional().default(""),
   website: z.string().optional().default(""),
   phone: z.object({
     value: z.string(),

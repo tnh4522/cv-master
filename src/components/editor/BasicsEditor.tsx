@@ -45,6 +45,7 @@ export function BasicsEditor() {
       title: nextBasics.title,
       email: nextBasics.email,
       linkedin: nextBasics.linkedin,
+      github: nextBasics.github,
       website: nextBasics.website,
       phone: nextBasics.phone,
       location: nextBasics.location,
@@ -64,7 +65,7 @@ export function BasicsEditor() {
       let message = issue ? issue.message : '';
       if (issue && path === 'email') {
         message = t('basics.emailError');
-      } else if (issue && (path === 'linkedin' || path === 'website')) {
+      } else if (issue && (path === 'linkedin' || path === 'github' || path === 'website')) {
         message = t('basics.urlError');
       }
       setFieldErrors((prev) => ({
@@ -522,7 +523,7 @@ export function BasicsEditor() {
           />
         </div>
 
-        {/* 3. LinkedIn & Portfolio */}
+        {/* 3. LinkedIn, GitHub & Portfolio */}
         <div className="space-y-1.5">
           <Label htmlFor="basics-linkedin">{t('basics.linkedin')}</Label>
           <Input
@@ -542,6 +543,24 @@ export function BasicsEditor() {
         </div>
 
         <div className="space-y-1.5">
+          <Label htmlFor="basics-github">{t('basics.github')}</Label>
+          <Input
+            id="basics-github"
+            placeholder="https://github.com/johndoe"
+            value={basics.github || ''}
+            hasError={Boolean(fieldErrors['github'])}
+            onChange={(e) => {
+              const next = { ...basics, github: e.target.value };
+              updateBasics({ github: e.target.value });
+              validateSingleField('github', next);
+            }}
+          />
+          {fieldErrors['github'] && (
+            <p className="text-xs text-destructive">{fieldErrors['github']}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="basics-website">{t('basics.portfolio')}</Label>
           <Input
             id="basics-website"

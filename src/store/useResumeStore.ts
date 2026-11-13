@@ -39,6 +39,7 @@ export const DEFAULT_RESUME_DATA: ResumeData = {
     title: "Software Developer",
     email: "youremail@domain.com",
     linkedin: "https://linkedin.com/in/johndoe",
+    github: "https://github.com/johndoe",
     website: "https://johndoe.com",
     phone: { value: "+010101010", breakAfter: false },
     location: { value: "Cairo, Egypt", breakAfter: false },
@@ -289,6 +290,12 @@ function buildMergedResumeData(persisted?: Partial<ResumeData> | null): ResumeDa
     basics: {
       ...DEFAULT_RESUME_DATA.basics,
       ...(persisted?.basics || {}),
+      github:
+        typeof persisted?.basics?.github === "string"
+          ? persisted.basics.github
+          : persisted
+          ? ""
+          : DEFAULT_RESUME_DATA.basics.github,
       phone: {
         ...DEFAULT_RESUME_DATA.basics.phone,
         ...(persisted?.basics?.phone || {}),

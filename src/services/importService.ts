@@ -258,8 +258,11 @@ export function parseResumeTextLocally(text: string): {
   const linkedinMatch = text.match(
     /https?:\/\/(?:www\.)?linkedin\.com\/in\/[a-zA-Z0-9_-]+/i
   );
+  const githubMatch = text.match(
+    /https?:\/\/(?:www\.)?github\.com\/[a-zA-Z0-9_-]+/i
+  );
   const websiteMatch = text.match(
-    /https?:\/\/(?!www\.linkedin\.com)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s)]*)?/i
+    /https?:\/\/(?!www\.linkedin\.com|github\.com|www\.github\.com)[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}(?:\/[^\s)]*)?/i
   );
 
   const candidateName =
@@ -326,6 +329,9 @@ export function parseResumeTextLocally(text: string): {
       linkedin: linkedinMatch
         ? linkedinMatch[0]
         : DEFAULT_RESUME_DATA.basics.linkedin,
+      github: githubMatch
+        ? githubMatch[0]
+        : (DEFAULT_RESUME_DATA.basics.github ?? ''),
       website: websiteMatch
         ? websiteMatch[0]
         : DEFAULT_RESUME_DATA.basics.website,
