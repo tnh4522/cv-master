@@ -292,7 +292,7 @@ export async function exportResumeToPdf({
 function waitForIframeAssets(win: Window, doc: Document): Promise<void> {
   const isTestEnv =
     typeof navigator !== 'undefined' && /jsdom/i.test(navigator.userAgent || '');
-  const assetTimeoutMs = isTestEnv ? 50 : 2500;
+  const assetTimeoutMs = isTestEnv ? 50 : 1200;
 
   const fontPromise =
     doc.fonts && typeof doc.fonts.ready?.then === 'function'
@@ -373,21 +373,23 @@ function printHtmlViaIframe(html: string, title: string): Promise<void> {
     document.title = cleanTitle;
 
     let settled = false;
+    let cleanedUp = false;
     let printTriggered = false;
+
+    const cleanupIframe = () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
+      document.title = previousTitle;
+      if (document.body.contains(iframe)) {
+        document.body.removeChild(iframe);
+      }
+    };
 
     const finish = () => {
       if (settled) return;
       settled = true;
-      document.title = previousTitle;
-      setTimeout(
-        () => {
-          if (document.body.contains(iframe)) {
-            document.body.removeChild(iframe);
-          }
-        },
-        isTestEnv ? 50 : 600
-      );
       resolve();
+      setTimeout(cleanupIframe, isTestEnv ? 50 : 15000);
     };
 
     const triggerPrint = async () => {
@@ -407,7 +409,14 @@ function printHtmlViaIframe(html: string, title: string): Promise<void> {
         if (!isTestEnv) {
           win.focus();
           if (typeof win.print === 'function') {
-            win.addEventListener('afterprint', finish, { once: true });
+            win.addEventListener(
+              'afterprint',
+              () => {
+                finish();
+                cleanupIframe();
+              },
+              { once: true }
+            );
             win.print();
           }
         }
@@ -426,16 +435,14 @@ function printHtmlViaIframe(html: string, title: string): Promise<void> {
     doc.write(html);
     doc.close();
 
-    // Safety fallback if iframe.onload does not fire or already fired synchronously on doc.close()
+    // Safety fallback if iframe.onload does not fire on doc.close()
     setTimeout(
       () => {
         if (!printTriggered) {
           void triggerPrint();
-        } else {
-          finish();
         }
       },
-      isTestEnv ? 120 : 1200
+      isTestEnv ? 100 : 400
     );
   });
 }

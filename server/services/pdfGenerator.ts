@@ -44,6 +44,18 @@ const CANDIDATE_BROWSER_PATHS: Record<string, string[]> = {
 };
 
 /**
+ * Checks whether the server is running inside a Vercel / AWS Lambda serverless environment.
+ */
+export function isServerlessEnvironment(): boolean {
+  return Boolean(
+    process.env.VERCEL ||
+      process.env.VERCEL_ENV ||
+      process.env.AWS_LAMBDA_FUNCTION_NAME ||
+      process.env.AWS_EXECUTION_ENV
+  );
+}
+
+/**
  * Resolves the local Chromium / Chrome / Edge executable path for headless PDF rendering.
  */
 export function resolveBrowserExecutablePath(): string | null {
@@ -66,6 +78,70 @@ export function resolveBrowserExecutablePath(): string | null {
   }
 
   return null;
+}
+
+/**
+ * Resolves the browser launch configuration for either local OS Chrome/Edge or
+ * Vercel/AWS Lambda serverless `@sparticuz/chromium`.
+ */
+async function resolveBrowserLaunchConfig(): Promise<{
+  executablePath: string;
+  args: string[];
+}> {
+  const localPath = resolveBrowserExecutablePath();
+  if (localPath && !isServerlessEnvironment()) {
+    return {
+      executablePath: localPath,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--font-render-hinting=none',
+        '--force-color-profile=srgb',
+        '--disable-extensions',
+        '--disable-background-networking',
+      ],
+    };
+  }
+
+  // In Vercel / AWS Lambda (or Linux without local Chrome), use @sparticuz/chromium
+  try {
+    const chromiumModule = await import('@sparticuz/chromium');
+    const chromium = chromiumModule.default ?? chromiumModule;
+    const serverlessExecPath = await chromium.executablePath();
+    if (serverlessExecPath) {
+      return {
+        executablePath: serverlessExecPath,
+        args: [
+          ...chromium.args,
+          '--hide-scrollbars',
+          '--font-render-hinting=none',
+          '--force-color-profile=srgb',
+        ],
+      };
+    }
+  } catch {
+    // Fallback to localPath if @sparticuz/chromium could not initialize
+  }
+
+  if (localPath) {
+    return {
+      executablePath: localPath,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--font-render-hinting=none',
+        '--force-color-profile=srgb',
+      ],
+    };
+  }
+
+  throw new Error(
+    'No Chromium-based browser (Chrome, Edge, @sparticuz/chromium) found on the server.'
+  );
 }
 
 /**
@@ -125,42 +201,31 @@ export async function getPdfBrowser(): Promise<Browser> {
     return browserLaunchPromise;
   }
 
-  const executablePath = resolveBrowserExecutablePath();
-  if (!executablePath) {
-    throw new Error(
-      'No Chromium-based browser (Chrome, Edge, Chromium) found on the server. Set PUPPETEER_EXECUTABLE_PATH to a valid browser binary.'
-    );
-  }
-
-  browserLaunchPromise = puppeteer
-    .launch({
+  browserLaunchPromise = (async () => {
+    const { executablePath, args } = await resolveBrowserLaunchConfig();
+    const browser = await puppeteer.launch({
       executablePath,
       headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--font-render-hinting=none',
-        '--force-color-profile=srgb',
-        '--disable-extensions',
-        '--disable-background-networking',
-      ],
-    })
-    .then((browser) => {
-      sharedBrowser = browser;
-      browser.on('disconnected', () => {
-        if (sharedBrowser === browser) {
-          sharedBrowser = null;
-        }
-      });
-      browserLaunchPromise = null;
-      return browser;
-    })
-    .catch((err) => {
-      browserLaunchPromise = null;
-      throw err;
+      defaultViewport: {
+        width: 794,
+        height: 1123,
+        deviceScaleFactor: 2,
+      },
+      args,
     });
+
+    sharedBrowser = browser;
+    browser.on('disconnected', () => {
+      if (sharedBrowser === browser) {
+        sharedBrowser = null;
+      }
+    });
+    browserLaunchPromise = null;
+    return browser;
+  })().catch((err) => {
+    browserLaunchPromise = null;
+    throw err;
+  });
 
   return browserLaunchPromise;
 }

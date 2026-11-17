@@ -16,6 +16,7 @@ import {
 } from './services/htmlNormalizer';
 import { renderResumeDataToHtml } from './services/resumeHtmlRenderer';
 import {
+  isServerlessEnvironment,
   renderHtmlToPdfBuffer,
   resolveBrowserExecutablePath,
   type GeneratePdfBufferParams,
@@ -45,8 +46,37 @@ export function createBackendApp(
     })
   );
 
-  // Support up to 15MB JSON payloads for embedded Base64 profile photos and multi-page CVs
-  app.use(express.json({ limit: '15mb' }));
+  // Support both Vercel pre-parsed req.body and raw stream up to 15MB
+  const jsonParser = express.json({ limit: '15mb' });
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    if (req.body !== undefined && req.body !== null) {
+      if (typeof req.body === 'string') {
+        try {
+          req.body = JSON.parse(req.body);
+          next();
+          return;
+        } catch {
+          res.status(400).json({ error: 'Malformed JSON in request body.' });
+          return;
+        }
+      }
+      if (Buffer.isBuffer(req.body)) {
+        try {
+          req.body = JSON.parse(req.body.toString('utf-8'));
+          next();
+          return;
+        } catch {
+          res.status(400).json({ error: 'Malformed JSON in request body.' });
+          return;
+        }
+      }
+      if (typeof req.body === 'object') {
+        next();
+        return;
+      }
+    }
+    jsonParser(req, res, next);
+  });
 
   const handleHealth = (_req: Request, res: Response) => {
     const browserPath = resolveBrowserExecutablePath();
@@ -55,7 +85,7 @@ export function createBackendApp(
       service: 'cv-master-pdf-backend',
       database: 'none',
       stateless: true,
-      browserAvailable: Boolean(browserPath),
+      browserAvailable: Boolean(browserPath || isServerlessEnvironment()),
       timestamp: new Date().toISOString(),
     });
   };

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "functions": {
+    "api/*.ts": {
+      "maxDuration": 60
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/pdf",
+      "destination": "/api/pdf"
+    },
+    {
+      "source": "/upload-photo",
+      "destination": "/api/upload-photo"
+    },
+    {
+      "source": "/health",
+      "destination": "/api/health"
+    },
+    {
+      "source": "/((?!api/|pdf$|upload-photo$|health$).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
